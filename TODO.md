@@ -28,7 +28,8 @@ If done, remove item from the list.
 
 ### Common Util
 - Guards   
-  Implement JWT Guard
+  - Implement JWT Guard
+  - Role-based Guard
 
 ### System Integration
 - Payment Gateway
