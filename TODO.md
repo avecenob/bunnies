@@ -1,35 +1,31 @@
 # TODO LIST
 If done, remove item from the list.
 ### Modules
-- Orders Module
-  - Entity
-  - DTO (save in "src/common")
-  - Services
-  - Controller
 - Carts Module
   - Entity
   - DTO (save in "src/common")
   - Services
+    - CRUD
   - Controller
 - Deliveries Module
   - Entity
   - DTO (save in "src/common")
   - Services
+    - CRUD
   - Controller
-- Entity
-  - DTO (save in "src/common")
-  - Services
-  - Controller
-- Payment Module
+- Payments Module
   - Entity
   - DTO (save in "src/common")
   - Services
+    - CRUD
+    - generate invoice
   - Controller
 
 ### Common Util
 - Guards   
-  - Implement JWT Guard
+  - JWT Guard
   - Role-based Guard
+  - Implement all the Guards
 
 ### System Integration
 - Payment Gateway

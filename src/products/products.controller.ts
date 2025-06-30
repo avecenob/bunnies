@@ -8,10 +8,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { CreateProductDto } from 'src/common/dto/create-product.dto';
-import { CreateCategoryDto } from 'src/common/dto/create-category.dto';
-import { UpdateProductDto } from 'src/common/dto/update-product-dto';
-import { UpdateCategoryDto } from 'src/common/dto/update-category.dto';
+import { CreateProductDto } from 'src/common/dto/products/create-product.dto';
+import { CreateCategoryDto } from 'src/common/dto/products/create-category.dto';
+import { UpdateProductDto } from 'src/common/dto/products/update-product-dto';
+import { UpdateCategoryDto } from 'src/common/dto/products/update-category.dto';
 
 @Controller('products')
 export class ProductsController {

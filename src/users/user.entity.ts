@@ -1,9 +1,11 @@
+import { Order } from 'src/orders/orders.entity';
 import {
   Entity,
   Column,
   PrimaryColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('users')
@@ -28,4 +30,7 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }
