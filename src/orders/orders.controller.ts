@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from 'src/common/dto/orders/create-order.dto';
-import { UpdateOrderDto } from 'src/common/dto/orders/update-order.dto';
+import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
 import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
 
@@ -27,9 +27,9 @@ export class OrdersController {
     return this.ordersService.findOrderById(params.id);
   }
 
-  @Get('user/:user_id')
+  @Get('user/:userId')
   findOrderByUserId(@Param() params: any) {
-    return this.ordersService.findOrdersByUserId(params.user_id);
+    return this.ordersService.findOrdersByUserId(params.userId);
   }
 
   @Post('create')
@@ -37,9 +37,12 @@ export class OrdersController {
     return this.ordersService.createOrder(createOrderDto);
   }
 
-  @Put(':id')
-  updateOrder(@Param() params: any, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.updateOrder(params.id, updateOrderDto);
+  @Put('status/:id')
+  updateOrder(
+    @Param() params: any,
+    @Body() updateOrderDto: UpdateOrderStatusDto,
+  ) {
+    return this.ordersService.updateOrderStatus(params.id, updateOrderDto);
   }
 
   @Delete(':id')
@@ -62,14 +65,14 @@ export class OrderItemsController {
     return this.ordersService.findOrderItemsById(params.id);
   }
 
-  @Get('order/:order_id')
+  @Get('order/:orderId')
   findOrderItemByOrderId(@Param() params: any) {
-    return this.ordersService.findOrderItemsByOrderId(params.order_id);
+    return this.ordersService.findOrderItemsByOrderId(params.orderId);
   }
 
-  @Get('product/:product_id')
+  @Get('product/:productId')
   findOrderItemByProductId(@Param() params: any) {
-    return this.ordersService.findOrderItemsByOrderId(params.product_id);
+    return this.ordersService.findOrderItemsByOrderId(params.productId);
   }
 
   @Post('create')

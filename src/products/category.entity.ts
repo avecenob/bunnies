@@ -4,11 +4,12 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
-import { Product } from './products.entity';
+import { Product } from './product.entity';
 
-@Entity('categories')
+@Entity()
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
@@ -19,12 +20,12 @@ export class Category {
   @Column()
   description: string;
 
+  @OneToMany(() => Product, (products) => products.category)
+  products: Relation<Product[]>;
+
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
-
-  @OneToMany(() => Product, (products) => products.category)
-  products: Product[];
+  updatedAt: Date;
 }

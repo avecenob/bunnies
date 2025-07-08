@@ -1,11 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateOrderDto {
+export class CreateCartDto {
   @IsNotEmpty()
   @IsString()
   userId: string;
-
-  @IsNotEmpty()
-  @IsString()
-  status: 'paid' | 'unpaid';
 }

@@ -1,4 +1,5 @@
-import { Order } from 'src/orders/orders.entity';
+import { Cart } from 'src/carts/cart.entity';
+import { Order } from 'src/orders/order.entity';
 import {
   Entity,
   Column,
@@ -6,12 +7,17 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
+  Relation,
 } from 'typeorm';
 
-@Entity('users')
+@Entity()
 export class User {
   @PrimaryColumn()
   id: string;
+
+  @Column()
+  role: string = 'customer';
 
   @Column()
   name: string;
@@ -22,15 +28,15 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
-  role: string = 'customer';
-
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 
   @OneToMany(() => Order, (order) => order.user)
-  orders: Order[];
+  orders: Relation<Order[]>;
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Relation<Cart>;
 }

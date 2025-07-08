@@ -90,7 +90,7 @@ export class UsersService {
       throw new NotFoundException('user not found');
     }
 
-    const { email, password, address, phone_number } = updateUserDto;
+    const { email, password, address, phoneNumber } = updateUserDto;
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : undefined;
@@ -100,7 +100,7 @@ export class UsersService {
         ...(email && { email }),
         ...(password && { password: hashedPassword }),
         ...(address && { address }),
-        ...(phone_number && { phone_number }),
+        ...(phoneNumber && { phoneNumber }),
       });
     } catch (error) {
       console.log(error);

@@ -57,7 +57,7 @@ export class CategoriesController {
 
   @Get()
   findAllCategories() {
-    return this.productsService.findAllCategores();
+    return this.productsService.findAllCategories();
   }
 
   @Get(':id')

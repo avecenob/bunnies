@@ -5,15 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from './orders.entity';
+import { Order } from './order.entity';
 import { Repository } from 'typeorm';
-import { OrderItem } from './order-items.entity';
+import { OrderItem } from './order-item.entity';
 import { CreateOrderDto } from 'src/common/dto/orders/create-order.dto';
 import { User } from 'src/users/user.entity';
 import { nanoid } from 'nanoid';
-import { UpdateOrderDto } from 'src/common/dto/orders/update-order.dto';
+import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
 import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
-import { Product } from 'src/products/products.entity';
+import { Product } from 'src/products/product.entity';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
 
 @Injectable()
@@ -30,15 +30,19 @@ export class OrdersService {
   ) {}
 
   async createOrder(createOrderDto: CreateOrderDto) {
-    const { user_id, ...rest } = createOrderDto;
-    const user = await this.usersRepository.findOneBy({ id: user_id });
+    const { userId, ...rest } = createOrderDto;
+    const user = await this.usersRepository.findOneBy({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('user not found. invalid user_id');
+      throw new NotFoundException('user not found. invalid userId');
     }
 
     const id = nanoid(10);
-    const order = await this.ordersRepository.create({ id, ...rest, user });
+    const order = await this.ordersRepository.create({
+      id,
+      ...rest,
+      user: user,
+    });
 
     try {
       await this.ordersRepository.save(order);
@@ -55,7 +59,7 @@ export class OrdersService {
   }
 
   async findAllOrders() {
-    const orders = await this.ordersRepository.find();
+    const orders = await this.ordersRepository.find({ relations: ['user'] });
 
     return {
       status: HttpStatus.OK,
@@ -65,7 +69,10 @@ export class OrdersService {
   }
 
   async findOrderById(id: string) {
-    const order = await this.ordersRepository.findOneBy({ id });
+    const order = await this.ordersRepository.findOne({
+      where: { id: id },
+      relations: ['user', 'orderItems'],
+    });
 
     if (!order) {
       throw new NotFoundException('order not found');
@@ -78,18 +85,18 @@ export class OrdersService {
     };
   }
 
-  async findOrdersByUserId(user_id: string) {
-    const user = await this.usersRepository.findOneBy({ id: user_id });
+  async findOrdersByUserId(userId: string) {
+    const user = await this.usersRepository.findOneBy({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('user not found. invalid user_id');
+      throw new NotFoundException('user not found. invalid userId');
     }
 
     const ordersByUser = await this.ordersRepository.find({
       where: {
-        user: { id: user_id },
+        user: { id: userId },
       },
-      relations: ['order_items'],
+      relations: ['orderItems'],
     });
 
     if (!ordersByUser) {
@@ -103,14 +110,17 @@ export class OrdersService {
     };
   }
 
-  async updateOrder(id: string, updateOrderDto: UpdateOrderDto) {
+  async updateOrderStatus(
+    id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ) {
     const orderToUpdate = await this.ordersRepository.findOneBy({ id });
 
     if (!orderToUpdate) {
       throw new NotFoundException('order not found');
     }
 
-    const { status } = updateOrderDto;
+    const { status } = updateOrderStatusDto;
 
     try {
       await this.ordersRepository.update(orderToUpdate.id, {
@@ -154,14 +164,14 @@ export class OrdersService {
   }
 
   async createOrderItem(createOrderItemDto: CreateOrderItemDto) {
-    const { product_id, order_id, ...rest } = createOrderItemDto;
+    const { productId, orderId, ...rest } = createOrderItemDto;
 
-    const product = await this.productsRepository.findOneBy({ id: product_id });
+    const product = await this.productsRepository.findOneBy({ id: productId });
     if (!product) {
       throw new NotFoundException('product not found');
     }
 
-    const order = await this.ordersRepository.findOneBy({ id: order_id });
+    const order = await this.ordersRepository.findOneBy({ id: orderId });
     if (!order) {
       throw new NotFoundException('order not found');
     }
@@ -187,7 +197,9 @@ export class OrdersService {
   }
 
   async findAllOrderItems() {
-    const orderItems = await this.orderItemsRepository.find();
+    const orderItems = await this.orderItemsRepository.find({
+      relations: ['order', 'product'],
+    });
 
     return {
       status: HttpStatus.OK,
@@ -197,7 +209,10 @@ export class OrdersService {
   }
 
   async findOrderItemsById(id: number) {
-    const orderItem = await this.orderItemsRepository.findOneBy({ id });
+    const orderItem = await this.orderItemsRepository.findOne({
+      where: { id: id },
+      relations: ['order', 'product'],
+    });
     if (!orderItem) {
       throw new NotFoundException('order item not found');
     }
@@ -209,14 +224,15 @@ export class OrdersService {
     };
   }
 
-  async findOrderItemsByOrderId(order_id: string) {
-    const order = await this.ordersRepository.findOneBy({ id: order_id });
+  async findOrderItemsByOrderId(orderId: string) {
+    const order = await this.ordersRepository.findOneBy({ id: orderId });
     if (!order) {
       throw new NotFoundException('order not found');
     }
 
-    const orderItems = await this.orderItemsRepository.findBy({
-      order: { id: order_id },
+    const orderItems = await this.orderItemsRepository.find({
+      where: { order: { id: orderId } },
+      relations: ['order', 'product'],
     });
     if (!orderItems) {
       throw new NotFoundException('order item not found');
@@ -229,14 +245,15 @@ export class OrdersService {
     };
   }
 
-  async findOrderItemsByProductId(product_id: string) {
-    const product = await this.productsRepository.findOneBy({ id: product_id });
+  async findOrderItemsByProductId(productId: string) {
+    const product = await this.productsRepository.findOneBy({ id: productId });
     if (!product) {
       throw new NotFoundException('product not found');
     }
 
-    const orderItems = await this.orderItemsRepository.findBy({
-      product: { id: product_id },
+    const orderItems = await this.orderItemsRepository.find({
+      where: { product: { id: productId } },
+      relations: ['order', 'product'],
     });
     if (!orderItems) {
       throw new NotFoundException('order item not found');
@@ -250,16 +267,16 @@ export class OrdersService {
   }
 
   // async updateOrderItem(
-  //   order_id: string,
-  //   product_id: string,
+  //   orderId: string,
+  //   productId: string,
   //   updateOrderItem: UpdateOrderItemDto,
   // ) {
-  //   const product = await this.productsRepository.findOneBy({ id: product_id });
+  //   const product = await this.productsRepository.findOneBy({ id: productId });
   //   if (!product) {
   //     throw new NotFoundException('product not found');
   //   }
 
-  //   const order = await this.ordersRepository.findOneBy({ id: order_id });
+  //   const order = await this.ordersRepository.findOneBy({ id: orderId });
   //   if (!order) {
   //     throw new NotFoundException('order not found');
   //   }
@@ -291,16 +308,19 @@ export class OrdersService {
   // }
 
   async updateOrderItem(id: number, updateOrderItemDto: UpdateOrderItemDto) {
-    const orderItemToUpdate = await this.orderItemsRepository.findOneBy({ id });
+    const orderItemToUpdate = await this.orderItemsRepository.findOne({
+      where: { id: id },
+      relations: ['order', 'product'],
+    });
     if (!orderItemToUpdate) {
       throw new NotFoundException('order item not found');
     }
 
-    const { qty } = updateOrderItemDto;
+    const { quantity } = updateOrderItemDto;
 
     try {
       await this.orderItemsRepository.update(orderItemToUpdate.id, {
-        ...(qty && { qty }),
+        ...(quantity && { quantity }),
       });
     } catch (error) {
       console.log(error);
@@ -321,7 +341,7 @@ export class OrdersService {
     }
 
     try {
-      await this.orderItemsRepository.delete(orderItemToDelete);
+      await this.orderItemsRepository.delete(orderItemToDelete.id);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();

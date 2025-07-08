@@ -16,7 +16,7 @@ export class CreateUserDto {
   address: string;
 
   @IsString()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsNotEmpty()
   role: string = 'customer'; // admin or customer

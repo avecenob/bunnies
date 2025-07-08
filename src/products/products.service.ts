@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './products.entity';
+import { Product } from './product.entity';
 import { Repository } from 'typeorm';
 import { Category } from './category.entity';
 import { CreateProductDto } from 'src/common/dto/products/create-product.dto';
@@ -24,9 +24,9 @@ export class ProductsService {
   ) {}
 
   async createProduct(createProductDto: CreateProductDto) {
-    const { category_id, ...rest } = createProductDto;
+    const { categoryId, ...rest } = createProductDto;
     const category = await this.categoryRepository.findOneBy({
-      id: category_id,
+      id: categoryId,
     });
 
     if (!category) {
@@ -81,12 +81,12 @@ export class ProductsService {
       throw new NotFoundException('product not found');
     }
 
-    const { name, category_id, description, price, stock } = updateProductDto;
+    const { name, categoryId, description, price, stock } = updateProductDto;
 
     try {
       await this.productsRepository.update(productToUpdate.id, {
         ...(name && { name }),
-        ...(category_id && { category_id }),
+        ...(categoryId && { categoryId }),
         ...(description && { description }),
         ...(price && { price }),
         ...(stock && { stock }),
@@ -139,7 +139,7 @@ export class ProductsService {
     };
   }
 
-  async findAllCategores() {
+  async findAllCategories() {
     const categories = await this.categoryRepository.find();
 
     return {
