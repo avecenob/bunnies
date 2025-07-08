@@ -23,6 +23,26 @@ export class ProductsService {
     private categoryRepository: Repository<Category>,
   ) {}
 
+  async validProduct(key: string) {
+    const product = await this.productsRepository.findOneBy({ id: key });
+
+    if (!product) {
+      throw new NotFoundException('product not found');
+    }
+
+    return product;
+  }
+
+  async validCategory(id: number) {
+    const product = await this.categoryRepository.findOneBy({ id });
+
+    if (!product) {
+      throw new NotFoundException('category not found');
+    }
+
+    return product;
+  }
+
   async createProduct(createProductDto: CreateProductDto) {
     const { categoryId, ...rest } = createProductDto;
     const category = await this.categoryRepository.findOneBy({
@@ -61,21 +81,17 @@ export class ProductsService {
   }
 
   async findProductById(id: string) {
-    const products = await this.productsRepository.findOneBy({ id });
-
-    if (!products) {
-      throw new NotFoundException();
-    }
+    const product = await this.validProduct(id);
 
     return {
       status: HttpStatus.OK,
       message: 'products found',
-      data: products,
+      data: product,
     };
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
-    const productToUpdate = await this.productsRepository.findOneBy({ id });
+    const productToUpdate = await this.validProduct(id);
 
     if (!productToUpdate) {
       throw new NotFoundException('product not found');
@@ -103,7 +119,7 @@ export class ProductsService {
   }
 
   async deleteProduct(id: string) {
-    const productToDelete = await this.productsRepository.findOneBy({ id });
+    const productToDelete = await this.validProduct(id);
 
     if (!productToDelete) {
       throw new NotFoundException('product not found');
@@ -150,7 +166,7 @@ export class ProductsService {
   }
 
   async findCategoryById(id: number) {
-    const category = await this.categoryRepository.findOneBy({ id });
+    const category = await this.validCategory(id);
 
     if (!category) {
       throw new NotFoundException();
@@ -165,11 +181,7 @@ export class ProductsService {
 
   async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
     const { name, description } = updateCategoryDto;
-    const categoryToUpdate = await this.categoryRepository.findOneBy({ id });
-
-    if (!categoryToUpdate) {
-      throw new NotFoundException();
-    }
+    const categoryToUpdate = await this.validCategory(id);
 
     try {
       await this.categoryRepository.update(categoryToUpdate.id, {
@@ -188,11 +200,7 @@ export class ProductsService {
   }
 
   async deleteCategory(id: number) {
-    const categoryToDelete = await this.categoryRepository.findOneBy({ id });
-
-    if (!categoryToDelete) {
-      throw new NotFoundException('category not found');
-    }
+    const categoryToDelete = await this.validCategory(id);
 
     try {
       await this.categoryRepository.delete(categoryToDelete.id);

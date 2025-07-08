@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
@@ -19,8 +20,38 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
+  /**
+   *
+   * extract method for checking valid user
+   *
+   * @param key {string} user id or email
+   * @returns {User} data
+   */
+  async validUser(key: string) {
+    const user = await this.userRepository.findOne({
+      where: [{ id: key }, { email: key }],
+    });
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return user;
+  }
+
+  async checkRegistered(email: string) {
+    if (await this.validUser(email)) {
+      throw new ConflictException('email already registered');
+    }
+
+    return null;
+  }
+
   async create(createUserDto: CreateUserDto) {
     const { email, password, role, name } = createUserDto;
+
+    await this.checkRegistered(email);
+
     const hashedPassword: string = await bcrypt.hash(password, 10);
     const id: string = nanoid(10);
     const user: User = this.userRepository.create({
@@ -56,11 +87,7 @@ export class UsersService {
   }
 
   async findOneById(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
+    const user = await this.validUser(id);
 
     return {
       status: HttpStatus.OK,
@@ -70,11 +97,7 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.userRepository.findOneBy({ email });
-
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
+    const user = await this.validUser(email);
 
     return {
       status: HttpStatus.OK,
@@ -84,11 +107,7 @@ export class UsersService {
   }
 
   async updateById(id: string, updateUserDto: UpdateUserDto) {
-    const userToUpdate = await this.userRepository.findOneBy({ id });
-
-    if (!userToUpdate) {
-      throw new NotFoundException('user not found');
-    }
+    const userToUpdate = await this.validUser(id);
 
     const { email, password, address, phoneNumber } = updateUserDto;
     const hashedPassword = password
@@ -114,11 +133,8 @@ export class UsersService {
   }
 
   async deleteById(id: string) {
-    const userToDelete = await this.userRepository.findOneBy({ id });
+    const userToDelete = await this.validUser(id);
 
-    if (!userToDelete) {
-      throw new NotFoundException('user not found');
-    }
     try {
       await this.userRepository.delete(userToDelete.id);
     } catch (error) {

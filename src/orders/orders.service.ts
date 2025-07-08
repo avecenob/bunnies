@@ -9,12 +9,12 @@ import { Order } from './order.entity';
 import { Repository } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { CreateOrderDto } from 'src/common/dto/orders/create-order.dto';
-import { User } from 'src/users/user.entity';
 import { nanoid } from 'nanoid';
 import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
 import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
-import { Product } from 'src/products/product.entity';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
+import { UsersService } from 'src/users/users.service';
+import { ProductsService } from 'src/products/products.service';
 
 @Injectable()
 export class OrdersService {
@@ -23,19 +23,22 @@ export class OrdersService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
-    @InjectRepository(Product)
-    private productsRepository: Repository<Product>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private usersService: UsersService,
+    private productsService: ProductsService,
   ) {}
+
+  /**
+   *
+   * extract method to check order
+   *
+   * @param key(?) order id
+   * @returns {Order} data
+   */
+  // async validOrder()
 
   async createOrder(createOrderDto: CreateOrderDto) {
     const { userId, ...rest } = createOrderDto;
-    const user = await this.usersRepository.findOneBy({ id: userId });
-
-    if (!user) {
-      throw new NotFoundException('user not found. invalid userId');
-    }
+    const user = await this.usersService.validUser(userId);
 
     const id = nanoid(10);
     const order = await this.ordersRepository.create({
@@ -86,12 +89,6 @@ export class OrdersService {
   }
 
   async findOrdersByUserId(userId: string) {
-    const user = await this.usersRepository.findOneBy({ id: userId });
-
-    if (!user) {
-      throw new NotFoundException('user not found. invalid userId');
-    }
-
     const ordersByUser = await this.ordersRepository.find({
       where: {
         user: { id: userId },
@@ -166,10 +163,7 @@ export class OrdersService {
   async createOrderItem(createOrderItemDto: CreateOrderItemDto) {
     const { productId, orderId, ...rest } = createOrderItemDto;
 
-    const product = await this.productsRepository.findOneBy({ id: productId });
-    if (!product) {
-      throw new NotFoundException('product not found');
-    }
+    const product = await this.productsService.validProduct(productId);
 
     const order = await this.ordersRepository.findOneBy({ id: orderId });
     if (!order) {
@@ -246,11 +240,6 @@ export class OrdersService {
   }
 
   async findOrderItemsByProductId(productId: string) {
-    const product = await this.productsRepository.findOneBy({ id: productId });
-    if (!product) {
-      throw new NotFoundException('product not found');
-    }
-
     const orderItems = await this.orderItemsRepository.find({
       where: { product: { id: productId } },
       relations: ['order', 'product'],
