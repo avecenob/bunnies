@@ -255,47 +255,6 @@ export class OrdersService {
     };
   }
 
-  // async updateOrderItem(
-  //   orderId: string,
-  //   productId: string,
-  //   updateOrderItem: UpdateOrderItemDto,
-  // ) {
-  //   const product = await this.productsRepository.findOneBy({ id: productId });
-  //   if (!product) {
-  //     throw new NotFoundException('product not found');
-  //   }
-
-  //   const order = await this.ordersRepository.findOneBy({ id: orderId });
-  //   if (!order) {
-  //     throw new NotFoundException('order not found');
-  //   }
-
-  //   const orderItemToUpdate = await this.orderItemsRepository.findOneBy({
-  //     product: product,
-  //     order: order,
-  //   });
-  //   if (!orderItemToUpdate) {
-  //     throw new NotFoundException('order item not found');
-  //   }
-
-  //   const { qty } = updateOrderItem;
-
-  //   try {
-  //     await this.orderItemsRepository.update(orderItemToUpdate.id, {
-  //       ...(qty && { qty }),
-  //     });
-  //   } catch (error) {
-  //     console.log(error);
-  //     throw new InternalServerErrorException();
-  //   }
-
-  //   return {
-  //     status: HttpStatus.OK,
-  //     message: `order item with id: ${orderItemToUpdate.id} for order: ${order.id} updated`,
-  //     data: orderItemToUpdate,
-  //   };
-  // }
-
   async updateOrderItem(id: number, updateOrderItemDto: UpdateOrderItemDto) {
     const orderItemToUpdate = await this.orderItemsRepository.findOne({
       where: { id: id },

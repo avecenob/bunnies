@@ -7,13 +7,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
-import { Product } from 'src/products/product.entity';
-import { User } from 'src/users/user.entity';
 import { CreateCartDto } from './create-cart.dto';
 import { nanoid } from 'nanoid';
 import { CartItem } from './cart-item.entity';
 import { CreateCartItemDto } from './create-cart-item.dto';
 import { UpdateCartItemDto } from './update-cart-item.dto';
+import { UsersService } from 'src/users/users.service';
+import { ProductsService } from 'src/products/products.service';
 
 @Injectable()
 export class CartsService {
@@ -22,11 +22,33 @@ export class CartsService {
     private cartsRepository: Repository<Cart>,
     @InjectRepository(CartItem)
     private cartsItemRepository: Repository<CartItem>,
-    @InjectRepository(Product)
-    private productsRepository: Repository<Product>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private usersService: UsersService,
+    private productsService: ProductsService,
   ) {}
+
+  async validCart(key: string) {
+    const cart = await this.cartsRepository.findOne({
+      where: { id: key },
+    });
+
+    if (!cart) {
+      throw new NotFoundException('cart not found');
+    }
+
+    return cart;
+  }
+
+  async validCartItem(key: number) {
+    const cartItem = await this.cartsItemRepository.findOne({
+      where: { id: key },
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException('cart item not found');
+    }
+
+    return cartItem;
+  }
 
   /**
    *
@@ -41,10 +63,7 @@ export class CartsService {
   async createCart(createCartDto: CreateCartDto) {
     const { userId } = createCartDto;
 
-    const user = await this.usersRepository.findOneBy({ id: userId });
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
+    const user = await this.usersService.validUser(userId);
 
     const id = nanoid(10);
     const cart = this.cartsRepository.create({
@@ -95,10 +114,7 @@ export class CartsService {
   }
 
   async findCartByUserId(userId: string) {
-    const user = await this.usersRepository.findOneBy({ id: userId });
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
+    await this.usersService.validUser(userId);
 
     const cart = await this.cartsRepository.find({
       where: {
@@ -115,10 +131,7 @@ export class CartsService {
   }
 
   async deleteCart(id: string) {
-    const cartToDelete = await this.cartsRepository.findOneBy({ id });
-    if (!cartToDelete) {
-      throw new NotFoundException('cart not found');
-    }
+    const cartToDelete = await this.validCart(id);
 
     try {
       await this.cartsRepository.delete(cartToDelete.id);
@@ -136,15 +149,9 @@ export class CartsService {
   async createCartItem(createCartItemDto: CreateCartItemDto) {
     const { cartId, productId, ...rest } = createCartItemDto;
 
-    const cart = await this.cartsRepository.findOneBy({ id: cartId });
-    if (!cart) {
-      throw new NotFoundException('cart not found');
-    }
+    const cart = await this.validCart(cartId);
 
-    const product = await this.productsRepository.findOneBy({ id: productId });
-    if (!product) {
-      throw new NotFoundException('product not found');
-    }
+    const product = await this.productsService.validProduct(productId);
 
     const cartItem = await this.cartsItemRepository.create({
       cart,
@@ -177,10 +184,7 @@ export class CartsService {
   }
 
   async findCartItemById(id: number) {
-    const cartItem = await this.cartsItemRepository.findOneBy({ id });
-    if (!cartItem) {
-      throw new NotFoundException('cart item not found');
-    }
+    const cartItem = await this.validCartItem(id);
 
     return {
       status: HttpStatus.OK,
@@ -190,13 +194,8 @@ export class CartsService {
   }
 
   async findCartItemsByCartId(cartId: string) {
-    const cart = await this.usersRepository.findOneBy({ id: cartId });
-    if (!cart) {
-      throw new NotFoundException('user not found');
-    }
-
     const cartItems = await this.cartsItemRepository.find({
-      where: { cart: cart },
+      where: { cart: await this.validCart(cartId) },
     });
 
     return {
@@ -207,12 +206,7 @@ export class CartsService {
   }
 
   async updateCartItem(id: number, updateCartItemDto: UpdateCartItemDto) {
-    const cartItemToUpdate = await this.cartsItemRepository.findOneBy({
-      id: id,
-    });
-    if (!cartItemToUpdate) {
-      throw new NotFoundException('cart item not found');
-    }
+    const cartItemToUpdate = await this.validCartItem(id);
 
     const { quantity } = updateCartItemDto;
 
@@ -233,12 +227,7 @@ export class CartsService {
   }
 
   async deleteCartItem(id: number) {
-    const cartItemToDelete = await this.cartsItemRepository.findOneBy({
-      id: id,
-    });
-    if (!cartItemToDelete) {
-      throw new NotFoundException('cart item not found');
-    }
+    const cartItemToDelete = await this.validCartItem(id);
 
     try {
       await this.cartsItemRepository.delete(cartItemToDelete);
