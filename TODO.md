@@ -1,12 +1,6 @@
 # TODO LIST
 If done, remove item from the list.
 ### Modules
-- Carts Module
-  - Entity
-  - DTO (save in "src/common")
-  - Services
-    - CRUD
-  - Controller
 - Deliveries Module
   - Entity
   - DTO (save in "src/common")
