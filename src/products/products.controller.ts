@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Render,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from 'src/common/dto/products/create-product.dto';
@@ -43,6 +44,17 @@ export class ProductsController {
   @Delete(':id')
   deleteProduct(@Param() params: any) {
     return this.productsService.deleteProduct(params.id);
+  }
+}
+
+@Controller('admin')
+export class AdminProductsController {
+  constructor(private productsService: ProductsService) {}
+
+  @Get('yow')
+  @Render('index')
+  adminList() {
+    return this.productsService.findAllProducts();
   }
 }
 

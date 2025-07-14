@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Render,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from '../common/dto/users/create-user.dto';
@@ -14,6 +15,13 @@ import { UpdateUserDto } from '../common/dto/users/update-user.dto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
+
+  @Get('test')
+  @Render('index')
+  test() {
+    // return { message: 'mantap' };
+    return this.userService.findOneById('bsJFAvYWze');
+  }
 
   @Get()
   findAll() {
