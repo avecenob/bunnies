@@ -63,31 +63,18 @@ export class ProductsService {
       throw new InternalServerErrorException();
     }
 
-    return {
-      status: HttpStatus.CREATED,
-      message: 'product created',
-      data: product,
-    };
+    return product;
   }
 
   async findAllProducts() {
     const products = await this.productsRepository.find();
-
-    return {
-      status: HttpStatus.OK,
-      message: 'success',
-      data: products,
-    };
+    return products;
   }
 
   async findProductById(id: string) {
     const product = await this.validProduct(id);
 
-    return {
-      status: HttpStatus.OK,
-      message: 'products found',
-      data: product,
-    };
+    return product;
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
@@ -97,25 +84,29 @@ export class ProductsService {
       throw new NotFoundException('product not found');
     }
 
-    const { name, categoryId, description, price, stock } = updateProductDto;
+    const { name, categoryId, description, price, stock, image } =
+      updateProductDto;
+    const category = await this.categoryRepository.findOne({
+      where: {
+        id: categoryId,
+      },
+    });
 
     try {
       await this.productsRepository.update(productToUpdate.id, {
         ...(name && { name }),
-        ...(categoryId && { categoryId }),
+        ...(category && { category }),
         ...(description && { description }),
         ...(price && { price }),
         ...(stock && { stock }),
+        ...(image && { image }),
       });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
 
-    return {
-      status: HttpStatus.OK,
-      message: `product with id: ${productToUpdate.id} updated`,
-    };
+    return productToUpdate;
   }
 
   async deleteProduct(id: string) {
@@ -132,10 +123,7 @@ export class ProductsService {
       throw new InternalServerErrorException();
     }
 
-    return {
-      status: HttpStatus.OK,
-      message: `product with id: ${productToDelete.id} deleted`,
-    };
+    return true;
   }
 
   async createCategory(createCategoryDto: CreateCategoryDto) {
@@ -148,21 +136,13 @@ export class ProductsService {
       throw new InternalServerErrorException();
     }
 
-    return {
-      status: HttpStatus.CREATED,
-      message: 'category created',
-      data: category,
-    };
+    return category;
   }
 
   async findAllCategories() {
     const categories = await this.categoryRepository.find();
 
-    return {
-      status: HttpStatus.OK,
-      message: 'success',
-      data: categories,
-    };
+    return categories;
   }
 
   async findCategoryById(id: number) {

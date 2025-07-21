@@ -17,8 +17,6 @@ If done, remove item from the list.
 
 ### Common Util
 - Guards   
-  - JWT Guard
-  - Role-based Guard
   - Implement all the Guards
 
 ### System Integration

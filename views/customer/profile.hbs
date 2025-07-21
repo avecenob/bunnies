@@ -1,0 +1,81 @@
+<h2 class="mb-4">Profil Pengguna</h2>
+
+<form id="profileForm" >
+  <input type="hidden" name="_method" value="PUT" />
+
+  <div class="mb-3">
+    <label class="form-label">Nama Lengkap</label>
+    <input type="text" class="form-control" id="name" name="name" value="{{user.name}}" disabled />
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" id="email" name="email" value="{{user.email}}" disabled />
+  </div>
+
+  <div class="mb-3">
+    <label for="phone" class="form-label">Nomor HP</label>
+    <input
+      type="tel"
+      class="form-control"
+      id="phone"
+      name="phone"
+      value="{{user.phone}}"
+      required
+    />
+  </div>
+
+  <div class="mb-3">
+    <label for="address" class="form-label">Alamat</label>
+    <textarea
+      class="form-control"
+      id="address"
+      name="address"
+      rows="3"
+      required
+    >{{user.address}}</textarea>
+  </div>
+
+  <div class="d-flex justify-content-between">
+    <a href="/orders" class="btn btn-outline-secondary">Lihat Pesanan</a>
+    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+  </div>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    const profileForm = document.getElementById('profileForm');
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('submit clicked');
+      const profileData = {
+        name: document.getElementById('name'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        address: document.getElementById('address'),
+      }
+
+      try {
+        const userId = {{{json user.id}}}
+
+        const response = await fetch(`/users/update/${userId}}`, {
+          method: 'PUT',
+          credentials: 'include',
+          body: JSON.stringify(profileData),
+        })
+        const result = response.json();
+        if (response.ok) {
+          alert(result.message || 'Profil berhasil diperbarui');
+          location.reload();
+        } else {
+          alert(result.message || 'Profil gagal diperbarui');
+        }
+      } catch (error){
+        console.log(error);
+        alert('Terjadi kesalahan saat memperbarui profil');
+      }
+    })
+
+  })
+</script>

@@ -1,0 +1,104 @@
+<h2 class="mb-3">Daftar Produk</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <a href="/admin/products/create" class="btn text-white" style="background-color: #DA1E48;">
+    + Create New
+  </a>
+  <div class="d-flex gap-2 ms-auto">
+    <button class="btn btn-outline-danger" id="deleteSelectedBtn">Delete Selection</button>
+    <form class="d-flex" method="GET" action="/products">
+      <input
+        class="form-control"
+        type="search"
+        name="q"
+        placeholder="Search"
+        value="{{query}}"
+      />
+    </form>
+  </div>
+</div>
+
+<form id="bulkDeleteForm">
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th><input type="checkbox" id="checkAll" /></th>
+          <th scope="col">#</th>
+          <th scope="col">Gambar</th>
+          <th scope="col">Nama</th>
+          <th scope="col">Harga</th>
+          <th scope="col">Stok</th>
+          <th scope="col">Kelola</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each data}}
+          <tr>
+            <td><input type="checkbox" name="selected[]" value="{{this.id}}" class="checkItem" /></td>
+            <th scope="row">{{increment @index}}</th>
+            <td>
+              <img
+                src="/images/products/{{this.image}}"
+                alt="{{this.name}}"
+                width="100"
+                height="100"
+                class="img-thumbnail"
+              />
+            </td>
+            <td>{{this.name}}</td>
+            <td>Rp {{this.price}}</td>
+            <td>{{this.stock}}</td>
+            <td>
+              <a href="products/edit/{{this.id}}" class="btn btn-sm btn-warning me-1">Edit</a>
+              <form class="deleteProductForm" data-id="{{this.id}}" style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+              </form>
+              {{!-- <button onclick="deleteProduct('{{this.id}}')" class="btn btn-sm btn-danger">Delete</button> --}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<script>
+  document.getElementById('checkAll')?.addEventListener('change', function () {
+    document.querySelectorAll('.checkItem').forEach(el => el.checked = this.checked);
+  });
+
+  document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+    if (confirm('Yakin ingin menghapus produk terpilih?')) {
+      document.getElementById('bulkDeleteForm').submit();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.deleteProductForm').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = form.dataset.id;
+        console.log(id);
+        try {
+          const response = await fetch(`/products/${id}`, {
+            method: 'DELETE'
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert(result.message || 'Produk dihapus');
+            {{!-- reload halaman --}}
+            location.reload();
+          } else {
+            alert(result.message || 'Gagal hapus produk');
+          }
+        } catch (err) {
+          console.log(err);
+          alert('Error menghapus produk');
+        }
+      });
+    });
+  })
+</script>

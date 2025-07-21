@@ -1,0 +1,52 @@
+<h2 class="mb-3">Daftar Pesanan</h2>
+<div class='table-responsive'>
+  <table class='table table-bordered table-hover align-middle text-center'>
+    <thead class='table-dark'>
+      <tr>
+        <th scope='col'>#</th>
+        <th scope='col'>ID</th>
+        <th scope='col'>Pelanggan</th>
+        <th scope='col'>Jumlah</th>
+        <th scope='col'>Status</th>
+        <th scope='col'>Selesai</th>
+        <th scope='col'>Dibuat</th>
+        <th scope='col'>Diperbarui</th>
+        <th scope='col'>Kelola</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each data}}
+        <tr>
+          <th scope='row'>{{increment @index}}</th>
+          <td>{{this.id}}</td>
+          <td>{{this.user.email}}</td>
+          <td>Rp {{this.total}}</td>
+          <td>{{this.status}}</td>
+          {{#if this.completion}}
+          <td>✅</td>
+          {{else}}
+          <td>❌</td>
+          {{/if}}
+          <td>{{formatDate this.createdAt}}</td>
+          <td>{{formatDate this.updatedAt}}</td>
+          <td>
+            <a
+              href='orders/{{this.id}}'
+              class='btn btn-sm btn-warning me-1'
+            >Detail</a>
+            <form
+              action='/orders/delete/{{this.id}}'
+              method='POST'
+              style='display:inline;'
+            >
+              <button
+                type='submit'
+                class='btn btn-sm btn-danger'
+              >Delete</button>
+            </form>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,77 @@
+
+    <div class="row">
+      <!-- Gambar -->
+      <div class="col-md-6 mb-4">
+        <img src="/images/products/{{product.image}}" alt="{{product.name}}" class="img-fluid rounded shadow" />
+      </div>
+
+      <!-- Detail Produk -->
+      <div class="col-md-6">
+        <h2>{{product.name}}</h2>
+        <p class="text-muted">{{product.description}}</p>
+
+        <p><strong>Harga:</strong> Rp {{product.price}}</p>
+        <p>
+          <strong>Stok:</strong> 
+          {{#if (gt product.stock 0)}}
+            <span class="text-success">{{product.stock}} tersedia</span>
+          {{else}}
+            <span class="text-danger">Stok habis</span>
+          {{/if}}
+        </p>
+
+        {{#if (gt product.stock 0)}}
+        <form id="add-to-cart-form" class="mt-4">
+          <input type="hidden" name="productId" value="{{product.id}}" />
+          <div class="mb-3">
+            <label for="quantity" class="form-label">Jumlah</label>
+            <input type="number" name="quantity" id="quantity" class="form-control" min="1" max="{{product.stock}}" value="1" required />
+          </div>
+          <button type="submit" class="btn text-white fw-semibold" style="background-color: #DA521E;">Tambah ke Keranjang</button>
+        </form>
+        {{else}}
+        <div class="alert alert-warning mt-4">Produk ini sedang tidak tersedia.</div>
+        {{/if}}
+      </div>
+    </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('add-to-cart-form');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const productId = form.querySelector('input[name="productId"]').value;
+      const quantity = form.querySelector('input[name="quantity"]').value;
+
+      try {
+        const res = await fetch('/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // penting untuk kirim cookie JWT
+          body: JSON.stringify({ productId, quantity }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(data.message || 'Produk berhasil ditambahkan ke keranjang!');
+        } else {
+          alert(data.message || 'Gagal menambahkan produk.');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Terjadi kesalahan saat menambahkan ke keranjang.');
+      }
+    });
+  });
+</script>
+
+
+</body>
+</html>

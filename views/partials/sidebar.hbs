@@ -1,0 +1,29 @@
+<!-- Sidebar untuk layar besar (>= md) -->
+<aside class="d-none d-md-block text-white p-4" style="
+  width: 280px;
+  position: fixed;
+  top: 70px;
+  bottom: 70px;
+  background-color: #DA521E;
+  overflow: hidden;
+  z-index: 1030;
+">
+  {{> sidebarCatalogue }}
+</aside>
+
+<!-- Offcanvas sidebar untuk layar kecil (< md) -->
+<div class="d-md-none">
+  <button class="btn text-white mb-3 ms-3 mt-3" style="background-color: #DA521E;" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">
+    ☰ Filter
+  </button>
+
+  <div class="offcanvas offcanvas-start text-bg-danger" tabindex="-1" id="filterSidebar">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Filter Produk</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      {{> sidebarCatalogue }}
+    </div>
+  </div>
+</div>

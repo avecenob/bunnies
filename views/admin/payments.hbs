@@ -1,0 +1,41 @@
+<div class='table-responsive'>
+  <table class='table table-bordered table-hover align-middle text-center'>
+    <thead class='table-dark'>
+      <tr>
+        <th scope='col'>#</th>
+        <th scope='col'>Transaction ID</th>
+        <th scope='col'>Order ID</th>
+        <th scope='col'>Time</th>
+        <th scope='col'>Status</th>
+        <th scope='col'>Manage</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each data}}
+        <tr>
+          <th scope='row'>{{increment @index}}</th>
+          <td>{{this.id}}</td>
+          <td>{{this.userId}}</td>
+          <td>Rp {{this.amount}}</td>
+          <td>{{this.status}}</td>
+          <td>
+            <a
+              href='/payments/edit/{{this.id}}'
+              class='btn btn-sm btn-warning me-1'
+            >Edit</a>
+            <form
+              action='/payments/delete/{{this.id}}'
+              method='POST'
+              style='display:inline;'
+            >
+              <button
+                type='submit'
+                class='btn btn-sm btn-danger'
+              >Delete</button>
+            </form>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

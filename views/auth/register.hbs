@@ -1,0 +1,80 @@
+    <div class="container py-5" style="max-width: 600px;">
+      <h2 class="mb-4 text-center" style="color: #DA1E48;">Register</h2>
+
+      <form id="registerForm">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nama</label>
+          <input type="text" class="form-control" id="name" name="name" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="phone" class="form-label">Nomor Telepon <small class="text-muted">(opsional)</small></label>
+          <input type="text" class="form-control" id="phone" name="phone" />
+        </div>
+
+        <div class="mb-3">
+          <label for="address" class="form-label">Alamat <small class="text-muted">(opsional)</small></label>
+          <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+        </div>
+
+        <button id="registerBtn" type="click" class="btn w-100 text-white" style="background-color: #DA1E48;">Register</button>
+
+        <p class="mt-3 text-center">
+          Sudah punya akun?
+          <a href="/auth/login" class="text-decoration-none">Login di sini</a>
+        </p>
+      </form>
+    </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    const registerForm = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+    console.log(loginForm);
+    console.log(loginBtn);
+
+    loginBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      console.log('submit clicked');
+      const registerData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        address: document.getElementById('address').value,
+        phone: document.getElementById('phone').value,
+      }
+
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(registerData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message || 'Register berhasil');
+          window.location.href = '/'; // login redirect to home
+        } else {
+          alert(result.message || 'Register gagal');
+        }
+      } catch (error) {
+        console.log(error);
+        alert('Terjadi kesalahan saat register');
+      }
+    })
+  });
+</script>

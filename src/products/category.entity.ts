@@ -20,6 +20,9 @@ export class Category {
   @Column()
   description: string;
 
+  @Column()
+  image: string;
+
   @OneToMany(() => Product, (products) => products.category)
   products: Relation<Product[]>;
 

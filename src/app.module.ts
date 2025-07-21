@@ -9,6 +9,9 @@ import { ProductsModule } from './products/products.module';
 import { AppDataSource } from './data-source';
 import { CartsModule } from './carts/carts.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminModule } from './admin/admin.module';
+import { MidtransModule } from './midtrans/midtrans.module';
+import { DeliveriesModule } from './deliveries/deliveries.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { PaymentsModule } from './payments/payments.module';
     ProductsModule,
     CartsModule,
     PaymentsModule,
+    AdminModule,
+    MidtransModule,
+    DeliveriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

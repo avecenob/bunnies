@@ -1,5 +1,6 @@
 import { User } from 'src/users/user.entity';
 import {
+  Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
@@ -22,6 +23,9 @@ export class Cart {
 
   @OneToMany(() => CartItem, (item) => item.cart)
   items: Relation<CartItem[]>;
+
+  @Column()
+  total: number = 0;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -28,7 +28,12 @@ export class CartsService {
 
   async validCart(key: string) {
     const cart = await this.cartsRepository.findOne({
-      where: { id: key },
+      where: [{ id: key }, { user: { email: key } }, { user: { id: key } }],
+      relations: {
+        items: {
+          product: true,
+        },
+      },
     });
 
     if (!cart) {
@@ -38,9 +43,27 @@ export class CartsService {
     return cart;
   }
 
+  async existCartItem(productId: string) {
+    const cartItem = await this.cartsItemRepository.findOne({
+      where: { product: { id: productId } },
+      relations: {
+        product: true,
+        cart: true,
+      },
+    });
+
+    if (!cartItem) return false;
+
+    return cartItem;
+  }
+
   async validCartItem(key: number) {
     const cartItem = await this.cartsItemRepository.findOne({
       where: { id: key },
+      relations: {
+        product: true,
+        cart: true,
+      },
     });
 
     if (!cartItem) {
@@ -48,6 +71,16 @@ export class CartsService {
     }
 
     return cartItem;
+  }
+
+  private async recalculateCartTotal(cartId: string) {
+    const items = await this.cartsItemRepository.find({
+      where: { cart: { id: cartId } },
+    });
+
+    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+
+    await this.cartsRepository.update(cartId, { total });
   }
 
   /**
@@ -98,36 +131,17 @@ export class CartsService {
   }
 
   async findCartById(id: string) {
-    const cart = await this.cartsRepository.find({
-      where: { id: id },
-      relations: ['items'],
-    });
-    if (!cart) {
-      throw new NotFoundException('cart not found');
-    }
+    const cart = await this.validCart(id);
 
-    return {
-      status: HttpStatus.OK,
-      message: 'cart found',
-      data: cart,
-    };
+    return cart;
   }
 
-  async findCartByUserId(userId: string) {
-    await this.usersService.validUser(userId);
+  async findCartByUser(key: string) {
+    await this.usersService.validUser(key);
 
-    const cart = await this.cartsRepository.find({
-      where: {
-        user: { id: userId },
-      },
-      relations: ['items'],
-    });
+    const cart = await this.validCart(key);
 
-    return {
-      status: HttpStatus.OK,
-      message: 'cart found',
-      data: cart,
-    };
+    return cart;
   }
 
   async deleteCart(id: string) {
@@ -147,30 +161,40 @@ export class CartsService {
   }
 
   async createCartItem(createCartItemDto: CreateCartItemDto) {
-    const { cartId, productId, ...rest } = createCartItemDto;
+    const { cartId, productId, quantity } = createCartItemDto;
 
     const cart = await this.validCart(cartId);
-
     const product = await this.productsService.validProduct(productId);
-
-    const cartItem = await this.cartsItemRepository.create({
-      cart,
-      product,
-      ...rest,
-    });
-
-    try {
-      await this.cartsItemRepository.save(cartItem);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+    const subtotal = quantity * product.price;
+    const existedCartItem = await this.existCartItem(productId);
+    if (existedCartItem) {
+      const updateCartItemDto: UpdateCartItemDto = {
+        quantity: quantity,
+        subtotal: subtotal,
+      };
+      try {
+        await this.updateCartItem(existedCartItem.id, updateCartItemDto);
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException();
+      }
+    } else {
+      try {
+        await this.cartsItemRepository.save({
+          cart,
+          product,
+          quantity,
+          subtotal,
+        });
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException();
+      }
     }
 
-    return {
-      status: HttpStatus.CREATED,
-      message: 'cart item created',
-      data: cartItem,
-    };
+    await this.recalculateCartTotal(cartId);
+
+    return cart;
   }
 
   async findAllCartItems() {
@@ -198,47 +222,45 @@ export class CartsService {
       where: { cart: await this.validCart(cartId) },
     });
 
-    return {
-      status: HttpStatus.OK,
-      message: 'success',
-      data: cartItems,
-    };
+    return cartItems;
   }
 
   async updateCartItem(id: number, updateCartItemDto: UpdateCartItemDto) {
     const cartItemToUpdate = await this.validCartItem(id);
 
-    const { quantity } = updateCartItemDto;
+    const { quantity, subtotal } = updateCartItemDto;
 
     try {
       await this.cartsItemRepository.update(cartItemToUpdate.id, {
         ...(quantity && { quantity }),
+        ...(subtotal && { subtotal }),
       });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
-
-    return {
-      status: HttpStatus.OK,
-      message: `cart item with id: ${cartItemToUpdate.id} is updated`,
-      data: cartItemToUpdate,
-    };
+    const updatedCartitem = await this.validCartItem(id);
+    console.log(updatedCartitem);
+    return updatedCartitem;
   }
 
   async deleteCartItem(id: number) {
     const cartItemToDelete = await this.validCartItem(id);
+    console.log(cartItemToDelete);
+    const cartId = cartItemToDelete.cart.id;
 
     try {
-      await this.cartsItemRepository.delete(cartItemToDelete);
+      await this.cartsItemRepository.delete(cartItemToDelete.id);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
 
+    await this.recalculateCartTotal(cartId);
+
     return {
       status: HttpStatus.OK,
-      message: `cart item with id: ${cartItemToDelete} is deleted`,
+      message: `cart item with id: ${cartItemToDelete.id} is deleted`,
     };
   }
 }

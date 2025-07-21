@@ -8,13 +8,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './order.entity';
 import { Repository } from 'typeorm';
 import { OrderItem } from './order-item.entity';
-import { CreateOrderDto } from 'src/common/dto/orders/create-order.dto';
-import { nanoid } from 'nanoid';
 import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
 import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
-import { UsersService } from 'src/users/users.service';
 import { ProductsService } from 'src/products/products.service';
+import { CreatePendingOrderDto } from 'src/common/dto/orders/create-pending-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -23,7 +21,6 @@ export class OrdersService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
-    private usersService: UsersService,
     private productsService: ProductsService,
   ) {}
 
@@ -36,56 +33,70 @@ export class OrdersService {
    */
   // async validOrder()
 
-  async createOrder(createOrderDto: CreateOrderDto) {
-    const { userId, ...rest } = createOrderDto;
-    const user = await this.usersService.validUser(userId);
-
-    const id = nanoid(10);
+  async createPendingOrder(createPendingOrderDto: CreatePendingOrderDto) {
+    const { cart, ...rest } = createPendingOrderDto;
     const order = await this.ordersRepository.create({
-      id,
       ...rest,
-      user: user,
+      items: cart.items.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
     });
 
-    try {
-      await this.ordersRepository.save(order);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
-    }
+    return this.ordersRepository.save(order);
+  }
 
-    return {
-      status: HttpStatus.CREATED,
-      message: 'order created',
-      data: order,
-    };
+  async markOrderAsPaid(orderId: string) {
+    await this.ordersRepository.update(orderId, { status: 'PAID' });
+  }
+
+  async markOrderAsFailed(orderId: string) {
+    await this.ordersRepository.update(orderId, { status: 'FAILED' });
+  }
+
+  async findLatestOrderByUser(key: string) {
+    return await this.ordersRepository.findOne({
+      where: { user: [{ id: key }, { email: key }] },
+      order: { createdAt: 'DESC' },
+      relations: {
+        items: {
+          product: true,
+        },
+      },
+    });
   }
 
   async findAllOrders() {
-    const orders = await this.ordersRepository.find({ relations: ['user'] });
+    const orders = await this.ordersRepository.find({
+      relations: {
+        user: true,
+        items: {
+          product: true,
+        },
+      },
+      order: { createdAt: 'DESC' },
+    });
 
-    return {
-      status: HttpStatus.OK,
-      message: 'success',
-      data: orders,
-    };
+    return orders;
   }
 
   async findOrderById(id: string) {
     const order = await this.ordersRepository.findOne({
       where: { id: id },
-      relations: ['user', 'orderItems'],
+      relations: {
+        user: true,
+        items: {
+          product: true,
+        },
+      },
     });
 
     if (!order) {
       throw new NotFoundException('order not found');
     }
 
-    return {
-      status: HttpStatus.OK,
-      message: 'order found',
-      data: order,
-    };
+    return order;
   }
 
   async findOrdersByUserId(userId: string) {
@@ -93,18 +104,19 @@ export class OrdersService {
       where: {
         user: { id: userId },
       },
-      relations: ['orderItems'],
+      relations: {
+        user: true,
+        items: {
+          product: true,
+        },
+      },
     });
 
     if (!ordersByUser) {
       throw new NotFoundException('order not found');
     }
 
-    return {
-      status: HttpStatus.OK,
-      message: 'order found',
-      data: ordersByUser,
-    };
+    return ordersByUser;
   }
 
   async updateOrderStatus(

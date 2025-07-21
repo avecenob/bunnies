@@ -1,0 +1,66 @@
+
+
+      <div class="container py-5" style="max-width: 500px;">
+        <h2 class="mb-4 text-center">Admin Login</h2>
+
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required />
+          </div>
+
+          <button id="loginBtn" type="click" class="btn w-100 text-white bg-dark">Login</button>
+
+          <p class="mt-3 text-center">
+            Belum punya akun?
+            <a href="/register" class="text-decoration-none">Daftar di sini</a>
+          </p>
+        </form>
+      </div>
+
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('DOM loaded');
+          const loginForm = document.getElementById('loginForm');
+          const loginBtn = document.getElementById('loginBtn');
+
+          loginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            console.log('submit clicked');
+            const loginData = JSON.stringify({
+              email: document.getElementById('email').value,
+              password: document.getElementById('password').value,
+            });
+
+            try {
+              const redirect = '/admin/dashboard';
+              const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: loginData,
+              });
+
+              const result = await response.json();
+
+              if (response.ok) {
+                alert(result.message || 'Login berhasil');
+                window.location.href = redirect; 
+              } else {
+                alert(result.message || 'Login gagal');
+              }
+            } catch (error) {
+              console.log(error);
+              alert('Terjadi kesalahan saat login');
+            }
+          })
+        });
+      </script>

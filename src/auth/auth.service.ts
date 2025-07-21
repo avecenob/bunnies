@@ -1,5 +1,4 @@
 import {
-  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -16,20 +15,25 @@ export class AuthService {
   ) {}
 
   private async validateUser(email: string, passwd: string) {
-    const user = await this.userService.findOneByEmail(email);
+    const user = await this.userService.findOne(email);
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('invalid email');
     }
 
-    if (user && (await bcrypt.compare(passwd, user.data.password))) {
-      const result = {
-        id: user.data.id,
-        email: user.data.email,
-        role: user.data.role,
-      };
-      return result;
+    const validUser = user && (await bcrypt.compare(passwd, user.password));
+
+    if (!validUser) {
+      throw new UnauthorizedException('wrong password');
     }
+
+    const result = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+    return result;
   }
 
   async login(email: string, password: string) {
@@ -39,13 +43,14 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      name: user.name,
+      role: user.role,
+    };
     const accessToken = this.jwtService.sign(payload);
 
-    return {
-      status: HttpStatus.OK,
-      message: 'login success',
-      access_token: accessToken,
-    };
+    return accessToken;
   }
 }

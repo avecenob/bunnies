@@ -1,0 +1,32 @@
+<main class="container py-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold" style="color: #28a745;">Pembayaran Berhasil!</h2>
+    <p class="lead">Terima kasih telah berbelanja di toko kami. Berikut adalah detail pesanan Anda:</p>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold" style="color: #DA521E;">Informasi Pesanan</div>
+    <div class="card-body">
+      <p><strong>ID Pesanan:</strong> {{order.id}}</p>
+      <p><strong>Status:</strong> {{order.status}}</p>
+      <p><strong>Total:</strong> Rp {{order.total}}</p>
+      <p><strong>Tanggal Pesanan:</strong> {{formatDate order.createdAt}}</p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold" style="color: #DA521E;">Produk yang Dipesan</div>
+    <ul class="list-group list-group-flush">
+      {{#each order.items}}
+        <li class="list-group-item d-flex justify-content-between">
+          <span>{{this.quantity}} x {{this.product.name}}</span>
+          <span>Rp {{this.subtotal}}</span>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="/" class="btn btn-outline-primary px-4 fw-bold">Kembali ke Beranda</a>
+  </div>
+</main>

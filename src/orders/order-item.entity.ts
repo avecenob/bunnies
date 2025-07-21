@@ -21,12 +21,15 @@ export class OrderItem {
   quantity: number;
 
   @ManyToOne(() => Product, (product) => product.orderItems)
-  @JoinColumn({ name: 'productId' })
+  @JoinColumn()
   product: Relation<Product>;
 
-  @ManyToOne(() => Order, (order) => order.orderItems)
-  @JoinColumn({ name: 'orderId' })
+  @ManyToOne(() => Order, (order) => order.items)
+  @JoinColumn()
   order: Relation<Order>;
+
+  @Column()
+  subtotal: number;
 
   @CreateDateColumn()
   createdAt: Timestamp;

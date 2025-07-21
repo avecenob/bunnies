@@ -1,7 +1,9 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export class UpdateCartItemDto {
-  @IsOptional()
   @IsNumber()
   quantity: number;
+
+  @IsNumber()
+  subtotal: number;
 }

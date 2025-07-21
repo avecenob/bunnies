@@ -1,0 +1,49 @@
+<h2 class="mb-4">Detail Pesanan</h2>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-dark text-white">Informasi Pesanan</div>
+      <div class="card-body">
+        <p><strong>ID Pesanan:</strong> {{order.id}}</p>
+        <p><strong>Status:</strong> {{order.status}}</p>
+        <p><strong>Total:</strong> Rp {{order.total}}</p>
+        <p><strong>Dibuat:</strong> {{formatDate order.createdAt}}</p>
+        <p><strong>Diupdate:</strong> {{formatDate order.updatedAt}}</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold bg-dark text-white">Informasi Pelanggan</div>
+      <div class="card-body">
+        <p><strong>Nama:</strong> {{order.user.name}}</p>
+        <p><strong>Email:</strong> {{order.user.email}}</p>
+        <p><strong>Telepon:</strong> {{order.user.phone}}</p>
+        <p><strong>Alamat:</strong> {{order.user.address}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold bg-dark text-white">Daftar Produk</div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {{#each order.items}}
+            <li class="list-group-item d-flex justify-content-between">
+              <div>
+                <strong>{{this.product.name}}</strong><br />
+                <small>{{this.quantity}} x Rp {{this.product.price}}</small>
+              </div>
+              <span>Rp {{this.subtotal}}</span>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-end">
+  <a href="/admin/orders" class="btn btn-secondary">← Kembali ke Daftar Pesanan</a>
+</div>

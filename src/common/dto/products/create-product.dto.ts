@@ -1,6 +1,9 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateProductDto {
+  @IsString()
+  image: string;
+
   @IsNotEmpty()
   @IsString()
   name: string;

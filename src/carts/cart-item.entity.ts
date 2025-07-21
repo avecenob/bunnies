@@ -17,7 +17,7 @@ export class CartItem {
   id: number;
 
   @ManyToOne(() => Product, (product) => product.cartItems)
-  @JoinColumn({ name: 'productId' })
+  @JoinColumn()
   product: Relation<Product>;
 
   @ManyToOne(() => Cart, (cart) => cart.items)
@@ -26,6 +26,9 @@ export class CartItem {
 
   @Column()
   quantity: number;
+
+  @Column()
+  subtotal: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -69,11 +69,7 @@ export class UsersService {
       throw new InternalServerErrorException();
     }
 
-    return {
-      status: HttpStatus.CREATED,
-      message: 'user created',
-      data: user,
-    };
+    return user;
   }
 
   async findAll() {
@@ -86,30 +82,16 @@ export class UsersService {
     };
   }
 
-  async findOneById(id: string) {
-    const user = await this.validUser(id);
+  async findOne(key: string) {
+    const user = await this.validUser(key);
 
-    return {
-      status: HttpStatus.OK,
-      message: 'user found',
-      data: user,
-    };
-  }
-
-  async findOneByEmail(email: string) {
-    const user = await this.validUser(email);
-
-    return {
-      status: HttpStatus.OK,
-      message: 'user found',
-      data: user,
-    };
+    return user;
   }
 
   async updateById(id: string, updateUserDto: UpdateUserDto) {
     const userToUpdate = await this.validUser(id);
 
-    const { email, password, address, phoneNumber } = updateUserDto;
+    const { email, password, address, phone } = updateUserDto;
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : undefined;
@@ -119,7 +101,7 @@ export class UsersService {
         ...(email && { email }),
         ...(password && { password: hashedPassword }),
         ...(address && { address }),
-        ...(phoneNumber && { phoneNumber }),
+        ...(phone && { phone }),
       });
     } catch (error) {
       console.log(error);

@@ -1,0 +1,156 @@
+<div class="d-flex flex-grow-1" style="min-height: calc(100vh - 112px);">
+  <!-- Sidebar -->
+  <aside
+    class="d-none d-md-block text-white p-4"
+    style="width: 250px; background-color: #DA521E;"
+  >
+    <form method="GET" action="/catalogue">
+      <!-- Kategori -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="color: #DAB01E;">Kategori</label>
+        {{#each filters.categories}}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="category" value="{{this}}" id="cat{{this}}"
+              {{#if (includes ../filters.selectedCategories this)}}checked{{/if}}>
+            <label class="form-check-label text-white" for="cat{{this}}">{{capitalize this}}</label>
+          </div>
+        {{/each}}
+      </div>
+
+      <!-- Harga -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="color: #DAB01E;">Harga (Rp)</label>
+        <div class="d-flex gap-2 align-items-center">
+          <input type="number" class="form-control form-control-sm" placeholder="Min" name="minPrice" min="0" value="{{filters.minPrice}}" />
+          <span class="fw-bold">-</span>
+          <input type="number" class="form-control form-control-sm" placeholder="Max" name="maxPrice" min="0" value="{{filters.maxPrice}}" />
+        </div>
+      </div>
+
+      <!-- Ketersediaan -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="color: #DAB01E;">Ketersediaan</label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="availability" id="inStock" value="inStock"
+            {{#if (eq filters.availability "inStock")}}checked{{/if}}>
+          <label class="form-check-label text-white" for="inStock">Tersedia</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="availability" id="allStock" value="all"
+            {{#if (eq filters.availability "all")}}checked{{/if}}>
+          <label class="form-check-label text-white" for="allStock">Semua</label>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <button class="btn fw-bold text-white" style="background-color: #DAB01E;">Terapkan Filter</button>
+      </div>
+    </form>
+  </aside>
+
+  <!-- Offcanvas Sidebar for Mobile -->
+  <div class="d-md-none">
+    <button class="btn text-white m-3" style="background-color: #DA521E;" data-bs-toggle="offcanvas" data-bs-target="#mobileFilterSidebar">
+      ☰ Filter
+    </button>
+
+    <div class="offcanvas offcanvas-start text-bg-danger" tabindex="-1" id="mobileFilterSidebar">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Filter Produk</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <!-- Konten sidebar sama seperti di atas -->
+        <form method="GET" action="/catalogue">
+          <!-- Kategori -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold" style="color: #DAB01E;">Kategori</label>
+            {{#each filters.categories}}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="category" value="{{this}}" id="mcat{{this}}"
+                  {{#if (includes ../filters.selectedCategories this)}}checked{{/if}}>
+                <label class="form-check-label text-white" for="mcat{{this}}">{{capitalize this}}</label>
+              </div>
+            {{/each}}
+          </div>
+
+          <!-- Harga -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold" style="color: #DAB01E;">Harga (Rp)</label>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="number" class="form-control form-control-sm" placeholder="Min" name="minPrice" min="0" value="{{filters.minPrice}}" />
+              <span class="fw-bold">-</span>
+              <input type="number" class="form-control form-control-sm" placeholder="Max" name="maxPrice" min="0" value="{{filters.maxPrice}}" />
+            </div>
+          </div>
+
+          <!-- Ketersediaan -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold" style="color: #DAB01E;">Ketersediaan</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="availability" id="minStock" value="inStock"
+                {{#if (eq filters.availability "inStock")}}checked{{/if}}>
+              <label class="form-check-label text-white" for="minStock">Tersedia</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="availability" id="mallStock" value="all"
+                {{#if (eq filters.availability "all")}}checked{{/if}}>
+              <label class="form-check-label text-white" for="mallStock">Semua</label>
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button class="btn fw-bold text-white" style="background-color: #DAB01E;">Terapkan Filter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Konten Utama -->
+  <main class="flex-grow-1 p-4">
+    <h2 class="mb-4" style="color: #DA521E;">Katalog Produk</h2>
+
+    <div class="row row-cols-1 row-cols-md-4 g-2">
+      {{#each products}}
+      <div class="col">
+        <div class="card shadow-sm text-center p-2" style="width: 250px; margin: auto">
+          <div class="d-flex justify-content-center mt-3">
+            <img src="/images/products/{{this.image}}" class="card-img-top" alt="{{this.name}}" style="height: 150px; width: 150px" />
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">{{this.name}}</h5>
+            <p class="card-text">Rp {{this.price}}</p>
+          </div>
+          <div class="card-footer text-center">
+            <a href="/products/catalogue/{{this.id}}" class="btn btn-sm text-white" style="background-color: #DA1E48;">Lihat Detail</a>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-5 d-flex justify-content-center">
+      <ul class="pagination">
+        {{#if pagination.hasPrev}}
+        <li class="page-item">
+          <a class="page-link" href="?page={{pagination.prev}}" aria-label="Sebelumnya">&laquo;</a>
+        </li>
+        {{/if}}
+
+        {{#each pagination.pages}}
+        <li class="page-item {{#if this.active}}active{{/if}}">
+          <a class="page-link" href="?page={{this.number}}">{{this.number}}</a>
+        </li>
+        {{/each}}
+
+        {{#if pagination.hasNext}}
+        <li class="page-item">
+          <a class="page-link" href="?page={{pagination.next}}" aria-label="Selanjutnya">&raquo;</a>
+        </li>
+        {{/if}}
+      </ul>
+    </nav>
+  </main>
+</div>

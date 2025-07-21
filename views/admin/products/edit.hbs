@@ -1,0 +1,83 @@
+{{! Menggunakan layout admin }}
+{{! File: views/admin/products/edit.hbs }}
+
+<div class="container py-4">
+  <h2 class="mb-4" style="color: #DA521E;">Edit Produk</h2>
+
+  <form id="editProductForm" enctype="multipart/form-data">
+    <input type="hidden" name="id" value="{{data.product.id}}" />
+
+    <div class="mb-3">
+      <label for="image" class="form-label">Gambar Produk</label>
+      <input class="form-control" type="file" id="image" name="image" accept="image/*" />
+      {{#if data.product.image}}
+        <div class="mt-2">
+          <img src="/images/products/{{data.product.image}}" alt="Preview" width="100" class="img-thumbnail" />
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Nama Produk</label>
+      <input class="form-control" type="text" id="name" name="name" value="{{data.product.name}}" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Harga (Rp)</label>
+      <input class="form-control" type="number" id="price" name="price" min="0" value="{{data.product.price}}" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="category" class="form-label">Kategori</label>
+      <select class="form-select" id="category" name="categoryId" required>
+        <option disabled>Pilih kategori</option>
+        {{#each data.categories}}
+          <option value="{{this.id}}" {{#if (eq this.id ../data.product.categoryId)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Deskripsi</label>
+      <textarea class="form-control" id="description" name="description" rows="4" required>{{data.product.description}}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="stock" class="form-label">Stok</label>
+      <input class="form-control" type="number" id="stock" name="stock" min="0" value="{{data.product.stock}}" required />
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <a href="/admin/products" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn text-white" style="background-color: #DA1E48;">Update</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('editProductForm');
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const id = formData.get('id');
+
+    try {
+      const response = await fetch(`/products/${id}`, {
+        method: 'PUT',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message || 'Produk berhasil diupdate');
+        window.location.href = result.redirect || '/admin/products';
+      } else {
+        alert(result.message || 'Gagal mengupdate produk');
+      }
+    } catch (err) {
+      console.log(err);
+      alert('Gagal mengirim data. Cek koneksi atau server.');
+    }
+  });
+</script>

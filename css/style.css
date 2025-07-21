@@ -1,0 +1,24 @@
+.navbar {
+  background-color: #DAB01E;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  /* Adjust based on contrast needs */
+}
+
+
+/* Pastikan main konten nggak ketimpa sidebar */
+@media (min-width: 500px) {
+  main {
+    margin-left: 280px !important;
+  }
+}
+
+body {
+  padding-top: 70px;
+  /* navbar */
+  padding-bottom: 70px;
+  /* footer */
+}
