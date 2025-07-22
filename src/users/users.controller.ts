@@ -110,6 +110,7 @@ export class RegisterController {
   @Post()
   async register(@Body() createUserDto: CreateUserDto) {
     const user = await this.userService.create(createUserDto);
+    console.log(user);
 
     if (user.role === 'customer') {
       const createCartDto = { userId: user.id };
