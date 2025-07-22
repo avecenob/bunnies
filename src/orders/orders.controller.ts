@@ -4,28 +4,30 @@ import {
   Delete,
   Get,
   HttpStatus,
+  InternalServerErrorException,
   Param,
   Post,
   Put,
   Render,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
-import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
-import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { CartsService } from 'src/carts/carts.service';
 import { JwtService } from '@nestjs/jwt';
-import { MidtransService } from 'src/midtrans/midtrans.service';
+import { MidtransService } from 'src/payments/midtrans.service';
 import { Roles } from 'src/auth/guards/roles/roles.decorator';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { nanoid } from 'nanoid';
 import { CreateTransactionDto } from 'src/common/dto/midtrans/create-transaction.dto';
 import * as dotenv from 'dotenv';
+import { ProductsService } from 'src/products/products.service';
+import { PaymentsService } from 'src/payments/payments.service';
 dotenv.config();
 
 @Controller('orders')
@@ -78,76 +80,16 @@ export class OrdersController {
   }
 }
 
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('order-items')
-export class OrderItemsController {
-  constructor(
-    private ordersService: OrdersService,
-    private jwtService: JwtService,
-  ) {}
-
-  private async extractPayload(token: string) {
-    let payload;
-    if (token) {
-      try {
-        payload = await this.jwtService.verifyAsync(token);
-      } catch (error) {
-        payload = undefined;
-      }
-    }
-
-    return payload;
-  }
-
-  @Get()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin')
-  findAll() {
-    return this.ordersService.findAllOrderItems();
-  }
-
-  @Get(':id')
-  findOrderItemById(@Param() params: any) {
-    return this.ordersService.findOrderItemsById(params.id);
-  }
-
-  @Get('order/:orderId')
-  findOrderItemByOrderId(@Param() params: any) {
-    return this.ordersService.findOrderItemsByOrderId(params.orderId);
-  }
-
-  @Get('product/:productId')
-  findOrderItemByProductId(@Param() params: any) {
-    return this.ordersService.findOrderItemsByOrderId(params.productId);
-  }
-
-  @Post('create')
-  createOrderItem(@Body() createOrderItemDto: CreateOrderItemDto) {
-    return this.ordersService.createOrderItem(createOrderItemDto);
-  }
-
-  @Put(':id')
-  updateOrderItem(
-    @Param() params: any,
-    @Body() updateOrderItemDto: UpdateOrderItemDto,
-  ) {
-    return this.ordersService.updateOrderItem(params.id, updateOrderItemDto);
-  }
-
-  @Delete(':id')
-  deleteOrderItem(@Param() params: any) {
-    return this.ordersService.deleteOrderItem(params.id);
-  }
-}
-
 @Controller('checkout')
 export class CheckoutController {
   constructor(
     private ordersService: OrdersService,
     private cartsService: CartsService,
     private usersService: UsersService,
+    private productsService: ProductsService,
     private jwtService: JwtService,
     private midtransService: MidtransService,
+    private paymentsService: PaymentsService,
   ) {}
 
   private async extractPayload(token: string) {
@@ -168,16 +110,17 @@ export class CheckoutController {
   @Roles('customer')
   @Render('order/checkout')
   async renderCheckout(@Req() req: Request) {
-    const token = req.cookies?.accessToken;
-    const payload = await this.extractPayload(token);
+    const { accessToken, cartCount = undefined } = req.cookies;
+    const payload = await this.extractPayload(accessToken);
     const user = await this.usersService.findOne(payload.email);
-    const cart = await this.cartsService.findCartByUser(user.email);
+    const cart = await this.cartsService.validCart(user.email);
     return {
       layout: 'layouts/shop',
       title: 'Checkout',
       statusCode: HttpStatus.OK,
       user: user,
       cart: cart,
+      cartCount: cartCount,
       MIDTRANS_CLIENT_KEY: process.env.MIDTRANS_CLIENT_KEY,
     };
   }
@@ -186,13 +129,14 @@ export class CheckoutController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('customer')
   async handleCheckout(
+    @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
     @Body() createTransactionDto: CreateTransactionDto,
   ) {
-    const token = req.cookies?.accessToken;
-    const payload = await this.extractPayload(token);
+    const { accessToken } = req.cookies;
+    const payload = await this.extractPayload(accessToken);
     const user = await this.usersService.findOne(payload.email);
-    const cart = await this.cartsService.findCartByUser(user.id);
+    const cart = await this.cartsService.validCart(user.id);
 
     const orderId = 'ORDER-' + nanoid(10);
     const grossAmount = cart.total;
@@ -209,10 +153,32 @@ export class CheckoutController {
       total: grossAmount,
     });
 
-    const cartItems = await this.cartsService.findCartItemsByCartId(cart.id);
-    for (const cartItem of cartItems) {
-      await this.cartsService.deleteCartItem(cartItem.id);
+    try {
+      cart.items.forEach(async (item) => {
+        const product = await this.productsService.findProductById(
+          item.product.id,
+        );
+        const newQuantity = product.stock - item.quantity;
+        await this.productsService.updateProduct(product.id, {
+          stock: newQuantity,
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
     }
+
+    try {
+      cart.items.forEach(
+        async (item) => await this.cartsService.deleteCartItem(item.id),
+      );
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+
+    res.clearCookie('cartCount');
+
     return {
       snapToken: transaction.token,
       clientKey: process.env.MIDTRANS_CLIENT_KEY,
@@ -220,16 +186,33 @@ export class CheckoutController {
   }
 
   @Post('payment-notification')
-  async handleNotification(@Req() req: Request) {
-    const statusResponse = await this.midtransService.getTransactionStatus(
-      req.body.order_id,
-    );
+  async handleNotification(
+    @Req() req: Request,
+    @Body() paymentNotification: any,
+  ) {
+    // const statusResponse = await this.midtransService.getTransactionStatus(
+    //   req.body.order_id,
+    // );
 
-    if (statusResponse.transaction_status === 'settlement') {
+    if (paymentNotification.transaction_status === 'settlement') {
       await this.ordersService.markOrderAsPaid(req.body.order_id);
+
+      const paymentData = {
+        transactionId: paymentNotification.transaction_id,
+        transactionTime: paymentNotification.transaction_time,
+        transactionStatus: paymentNotification.transaction_status,
+        paymentType: paymentNotification.payment_type,
+        order: await this.ordersService.findOrderById(
+          paymentNotification.order_id,
+        ),
+        amount: paymentNotification.gross_amount,
+        bank: paymentNotification.bank,
+        approvalCode: paymentNotification.approval_code,
+      };
+      await this.paymentsService.createPayment(paymentData);
     }
 
-    if (statusResponse.transaction_status === 'expire') {
+    if (paymentNotification.transaction_status === 'expire') {
       await this.ordersService.markOrderAsFailed(req.body.order_id);
     }
 
@@ -242,7 +225,8 @@ export class CheckoutController {
   @Get('after-payment')
   @Render('order/after-payment')
   async renderSuccess(@Req() req: Request) {
-    const payload = req.cookies?.accessToken;
+    const { accessToken, cartCount } = req.cookies;
+    const payload = await this.extractPayload(accessToken);
     const user = await this.usersService.findOne(payload.email);
     const latestOrder = await this.ordersService.findLatestOrderByUser(
       payload.email,
@@ -253,6 +237,7 @@ export class CheckoutController {
       title: 'Pesanan Terbayar',
       order: latestOrder,
       user: user,
+      cartCount: cartCount,
     };
   }
 }

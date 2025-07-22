@@ -59,8 +59,8 @@ export class ProductsController {
   @Get('catalogue')
   @Render('products/catalogue')
   async renderCatalogue(@Req() req: Request) {
-    const token = req.cookies?.accessToken;
-    const user = await this.extractPayload(token);
+    const { accessToken, cartCount } = req.cookies;
+    const user = await this.extractPayload(accessToken);
     const products = await this.productsService.findAllProducts();
     return {
       layout: 'layouts/shop',
@@ -69,6 +69,7 @@ export class ProductsController {
       message: 'success',
       products: products,
       user: user,
+      cartCount: cartCount,
     };
   }
 
@@ -85,8 +86,8 @@ export class ProductsController {
   @Get('catalogue/:id')
   @Render('products/details')
   async renderDetails(@Param() params: any, @Req() req: Request) {
-    const token = req.cookies?.accessToken;
-    const user = await this.extractPayload(token);
+    const { accessToken, cartCount } = req.cookies;
+    const user = await this.extractPayload(accessToken);
     const product = await this.productsService.findProductById(params.id);
 
     return {
@@ -95,6 +96,7 @@ export class ProductsController {
       status: HttpStatus.OK,
       product: product,
       user: user,
+      cartCount: cartCount,
     };
   }
 

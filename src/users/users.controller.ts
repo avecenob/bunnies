@@ -21,24 +21,41 @@ import { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt.guard';
 import { Roles } from 'src/auth/guards/roles/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private userService: UsersService,
     private cartsService: CartsService,
+    private jwtService: JwtService,
   ) {}
+
+  private async extractPayload(token: string) {
+    let payload;
+    if (token) {
+      try {
+        payload = await this.jwtService.verifyAsync(token);
+      } catch (error) {
+        payload = undefined;
+      }
+    }
+
+    return payload;
+  }
 
   @Get('profile/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('customer')
   @Render('customer/profile')
-  async renderProfile(@Req() req: Request, @Param() userId: string) {
-    const user = await this.userService.findOne(userId);
+  async renderProfile(@Req() req: Request, @Param() params: any) {
+    const { cartCount } = req.cookies;
+    const user = await this.userService.findOne(params.id);
     return {
       layout: 'layouts/shop',
       title: 'Profil',
       user: user,
+      cartCount: cartCount,
     };
   }
 
@@ -61,7 +78,7 @@ export class UsersController {
 
   @Delete(':id')
   async delete(@Param() params: any) {
-    const cartToDelete = await this.cartsService.findCartByUser(params.id);
+    const cartToDelete = await this.cartsService.validCart(params.id);
     if (cartToDelete) {
       await this.cartsService.deleteCart(cartToDelete.id);
     }

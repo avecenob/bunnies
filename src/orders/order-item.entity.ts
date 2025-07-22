@@ -2,6 +2,7 @@ import { Product } from 'src/products/product.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -20,7 +21,9 @@ export class OrderItem {
   @Column()
   quantity: number;
 
-  @ManyToOne(() => Product, (product) => product.orderItems)
+  @ManyToOne(() => Product, (product) => product.orderItems, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   product: Relation<Product>;
 
@@ -36,4 +39,7 @@ export class OrderItem {
 
   @UpdateDateColumn()
   updatedAt: Timestamp;
+
+  @DeleteDateColumn()
+  deletedAt: Timestamp;
 }

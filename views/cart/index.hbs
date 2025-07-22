@@ -64,7 +64,7 @@
         console.log(cartItemId);
 
         try {
-          const res = await fetch(`/cart/delete/${cartItemId}`, {
+          const res = await fetch(`/cart/delete-item/${cartItemId}`, {
             method: 'DELETE',
             credentials: 'include', // penting untuk kirim cookie JWT
           });

@@ -34,16 +34,6 @@
               href='orders/{{this.id}}'
               class='btn btn-sm btn-warning me-1'
             >Detail</a>
-            <form
-              action='/orders/delete/{{this.id}}'
-              method='POST'
-              style='display:inline;'
-            >
-              <button
-                type='submit'
-                class='btn btn-sm btn-danger'
-              >Delete</button>
-            </form>
           </td>
         </tr>
       {{/each}}

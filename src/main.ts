@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as hbs from 'hbs';
-import * as methodOverride from 'method-override';
 import * as cookieParser from 'cookie-parser';
 import 'dayjs/locale/id';
 import * as dayjsModule from 'dayjs';
@@ -18,34 +17,31 @@ async function bootstrap() {
   app.enableCors();
 
   app.useGlobalPipes(new ValidationPipe());
-  app.use(methodOverride('_method'));
   app.use(cookieParser());
 
   // set views and assets
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setViewEngine('hbs');
-
   app.setBaseViewsDir('views');
 
   // register partials
-  hbs.registerPartials(join(__dirname, '..', 'views/partials'));
-  hbs.registerPartials(join(__dirname, '..', 'views/layouts'));
+  hbs.registerPartials(join(__dirname + '/../views/partials'));
 
   // register helpers
-  hbs.registerHelper('increment', function (value: any) {
+  hbs.registerHelper('increment', (value: any) => {
     return parseInt(value) + 1;
   });
-  hbs.registerHelper('includes', function (array: any[], value: any) {
+  hbs.registerHelper('includes', (array: any[], value: any) => {
     return Array.isArray(array) && array.includes(value);
   });
-  hbs.registerHelper('capitalize', function (str: string) {
+  hbs.registerHelper('capitalize', (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   });
-  hbs.registerHelper('eq', function (a: any, b: any) {
+  hbs.registerHelper('eq', (a: any, b: any) => {
     return a === b;
   });
   hbs.registerHelper('gt', (a: number, b: number) => a > b);
-  hbs.registerHelper('json', function (context: any) {
+  hbs.registerHelper('json', (context: any) => {
     return new hbs.SafeString(
       JSON.stringify(context)
         .replace(/</g, '\\u003c')
@@ -54,7 +50,7 @@ async function bootstrap() {
         .replace(/'/g, '\\u0027'),
     );
   });
-  hbs.registerHelper('formatDate', function (date: Date) {
+  hbs.registerHelper('formatDate', (date: Date) => {
     return dayjs(date).locale('id').format('D MMMM YYYY, HH:mm');
   });
 

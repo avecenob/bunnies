@@ -13,6 +13,8 @@ import { CreateCategoryDto } from 'src/common/dto/products/create-category.dto';
 import { nanoid } from 'nanoid';
 import { UpdateCategoryDto } from 'src/common/dto/products/update-category.dto';
 import { UpdateProductDto } from 'src/common/dto/products/update-product-dto';
+import { OrderItem } from 'src/orders/order-item.entity';
+import { CartItem } from 'src/carts/cart-item.entity';
 
 @Injectable()
 export class ProductsService {
@@ -21,10 +23,21 @@ export class ProductsService {
     private productsRepository: Repository<Product>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(OrderItem)
+    private orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(CartItem)
+    private cartItemRepository: Repository<CartItem>,
   ) {}
 
   async validProduct(key: string) {
-    const product = await this.productsRepository.findOneBy({ id: key });
+    const product = await this.productsRepository.findOne({
+      where: { id: key },
+      relations: {
+        category: true,
+        orderItems: true,
+        cartItems: true,
+      },
+    });
 
     if (!product) {
       throw new NotFoundException('product not found');
@@ -77,7 +90,7 @@ export class ProductsService {
     return product;
   }
 
-  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
+  async updateProduct(id: string, updateProductDto: Partial<UpdateProductDto>) {
     const productToUpdate = await this.validProduct(id);
 
     if (!productToUpdate) {
@@ -117,7 +130,10 @@ export class ProductsService {
     }
 
     try {
-      await this.productsRepository.delete(productToDelete.id);
+      // Soft-delete all order items and cart items first
+      await this.orderItemRepository.softDelete({ product: { id: id } });
+      await this.cartItemRepository.softDelete({ product: { id: id } });
+      return await this.productsRepository.remove(productToDelete);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();

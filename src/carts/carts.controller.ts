@@ -9,48 +9,21 @@ import {
   Post,
   Render,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { CartsService } from './carts.service';
-import { CreateCartDto } from './create-cart.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt.guard';
 import { Roles } from 'src/auth/guards/roles/roles.decorator';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { CreateCartItemDto } from './create-cart-item.dto';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 
-@Controller('carts')
-export class CartsController {
-  constructor(private cartsService: CartsService) {}
-
-  @Post('create')
-  createCart(@Body() createCartDto: CreateCartDto) {
-    return this.cartsService.createCart(createCartDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.cartsService.findAllCarts();
-  }
-
-  @Get(':id')
-  findById(@Param() params: any) {
-    return this.cartsService.findCartById(params.id);
-  }
-
-  @Get('user/:userId')
-  findByUserId(@Param() params: any) {
-    return this.cartsService.findCartByUser(params.userId);
-  }
-
-  @Delete(':id')
-  deleteCart(@Param() params: any) {
-    return this.cartsService.deleteCart(params.id);
-  }
-}
-
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('customer')
 @Controller('cart')
-export class CartViewController {
+export class CartController {
   constructor(
     private cartsService: CartsService,
     private jwtService: JwtService,
@@ -84,38 +57,47 @@ export class CartViewController {
      * I'm manually retrieving the payload to get rid
      * of the error/warning
      */
-    const token = req.cookies?.accessToken;
-    const user = await this.extractPayload(token);
+    const { accessToken, cartCount } = req.cookies;
+    const user = await this.extractPayload(accessToken);
 
-    const cart = await this.cartsService.findCartByUser(user.email);
+    const cart = await this.cartsService.validCart(user.email);
     return {
       layout: 'layouts/shop',
       title: 'Keranjang - Bunnies Bakery',
       statusCode: HttpStatus.OK,
       cart: cart,
       user: user,
+      cartCount: cartCount,
     };
   }
 
   @Post('add')
-  @UseGuards(JwtAuthGuard)
-  @Roles('customer')
-  async addItem(@Req() req: Request, @Body() body: any) {
-    const token = req.cookies?.accessToken;
-    const user = await this.extractPayload(token);
+  async addItem(
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+    @Body() newItem: any,
+  ) {
+    const { accessToken } = req.cookies;
+    const user = await this.extractPayload(accessToken);
 
-    const cart = await this.cartsService.findCartByUser(user.email);
+    const cart = await this.cartsService.validCart(user.email);
 
     if (!cart) {
       throw new NotFoundException('cart not found');
     }
 
     const createCartItemDto: CreateCartItemDto = {
-      ...body,
+      ...newItem,
       cartId: cart.id,
     };
 
     const cartItem = await this.cartsService.createCartItem(createCartItemDto);
+
+    const newCartCount = await this.cartsService.countCartItems(cart.id);
+
+    res.cookie('cartCount', newCartCount, {
+      httpOnly: true,
+    });
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -123,10 +105,21 @@ export class CartViewController {
     };
   }
 
-  @Delete('delete/:id')
-  @UseGuards(JwtAuthGuard)
-  @Roles('customer')
-  async deleteItem(@Req() req: Request, @Param() params: any) {
+  @Delete('delete-item/:id')
+  async deleteItem(
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+    @Param() params: any,
+  ) {
+    const { cartCount } = req.cookies;
+    const newCartCount = parseInt(cartCount) - 1;
+    if (newCartCount === 0) {
+      res.clearCookie('cartCount');
+    } else {
+      res.cookie('cartCount', newCartCount, {
+        httpOnly: true,
+      });
+    }
     return {
       ...(await this.cartsService.deleteCartItem(params.id)),
     };

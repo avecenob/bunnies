@@ -9,7 +9,6 @@ import { Order } from './order.entity';
 import { Repository } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
-import { CreateOrderItemDto } from 'src/common/dto/orders/create-order-item.dto';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
 import { ProductsService } from 'src/products/products.service';
 import { CreatePendingOrderDto } from 'src/common/dto/orders/create-pending-order.dto';
@@ -169,36 +168,6 @@ export class OrdersService {
     return {
       status: HttpStatus.OK,
       message: `order with id: ${orderToDelete.id} deleted`,
-    };
-  }
-
-  async createOrderItem(createOrderItemDto: CreateOrderItemDto) {
-    const { productId, orderId, ...rest } = createOrderItemDto;
-
-    const product = await this.productsService.validProduct(productId);
-
-    const order = await this.ordersRepository.findOneBy({ id: orderId });
-    if (!order) {
-      throw new NotFoundException('order not found');
-    }
-
-    const orderItem = await this.orderItemsRepository.create({
-      product,
-      order,
-      ...rest,
-    });
-
-    try {
-      await this.orderItemsRepository.save(orderItem);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
-    }
-
-    return {
-      status: HttpStatus.CREATED,
-      message: 'order item created',
-      data: orderItem,
     };
   }
 

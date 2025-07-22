@@ -39,6 +39,12 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
     });
 
+    if (!(await this.authService.isAdmin(userLoginDto.email))) {
+      res.cookie('cartCount', '', {
+        httpOnly: true,
+      });
+    }
+
     return {
       statusCode: HttpStatus.OK,
       message: 'login success',

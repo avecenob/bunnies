@@ -22,15 +22,19 @@ import { Roles } from 'src/auth/guards/roles/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { CreateProductDto } from 'src/common/dto/products/create-product.dto';
 import { OrdersService } from 'src/orders/orders.service';
+import { PaymentsService } from 'src/payments/payments.service';
 import { ProductsService } from 'src/products/products.service';
 import { UsersService } from 'src/users/users.service';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 @Controller('admin')
 export class AdminController {
   constructor(
     private productsService: ProductsService,
     private usersService: UsersService,
     private ordersService: OrdersService,
+    private paymentsService: PaymentsService,
     private jwtService: JwtService,
   ) {}
 
@@ -46,16 +50,6 @@ export class AdminController {
     return payload;
   }
 
-  @Get('/')
-  async login(@Res() res: Response) {
-    return res.render('admin/login', {
-      layout: 'layouts/admin',
-      title: 'Login',
-    });
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('/dashboard')
   async index(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
@@ -68,8 +62,6 @@ export class AdminController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('products')
   async productsList(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
@@ -85,8 +77,6 @@ export class AdminController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('products/create')
   async renderCreateProduct(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
@@ -102,8 +92,6 @@ export class AdminController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Post('products/create')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -140,8 +128,6 @@ export class AdminController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('products/edit/:id')
   async editProduct(
     @Req() req: Request,
@@ -176,8 +162,6 @@ export class AdminController {
   //   };
   // }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('orders')
   async renderAdminOrders(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
@@ -193,8 +177,6 @@ export class AdminController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('orders/:id')
   @Render('admin/orders/details')
   async renderAdminOrderDetails(@Req() req: Request, @Param() params: any) {
@@ -211,17 +193,17 @@ export class AdminController {
     };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('payments')
   async renderAdminPayments(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
     const payload = await this.extractPayload(token);
     const user = await this.usersService.findOne(payload.email);
+    const payments = await this.paymentsService.findAllPayments();
     return res.render('admin/payments', {
       layout: 'layouts/admin',
       title: 'Pembayaran',
       user: user,
+      payments: payments,
     });
   }
 }

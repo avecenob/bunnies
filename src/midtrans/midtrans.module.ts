@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MidtransService } from './midtrans.service';
+import { MidtransService } from '../payments/midtrans.service';
 
 @Module({
   providers: [MidtransService],

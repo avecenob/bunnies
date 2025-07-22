@@ -4,35 +4,33 @@
       <tr>
         <th scope='col'>#</th>
         <th scope='col'>Transaction ID</th>
-        <th scope='col'>Order ID</th>
-        <th scope='col'>Time</th>
         <th scope='col'>Status</th>
-        <th scope='col'>Manage</th>
+        <th scope='col'>Waktu Pembayaran</th>
+        <th scope='col'>Jenis</th>
+        <th scope='col'>Order ID</th>
+        <th scope='col'>Jumlah</th>
+        <th scope='col'>Bank</th>
+        <th scope='col'>Approval</th>
+        <th scope='col'>Kelola</th>
       </tr>
     </thead>
     <tbody>
-      {{#each data}}
+      {{#each payments}}
         <tr>
           <th scope='row'>{{increment @index}}</th>
-          <td>{{this.id}}</td>
-          <td>{{this.userId}}</td>
+          <td>{{this.transactionId}}</td>
+          <td>{{this.transactionStatus}}</td>
+          <td>{{this.transactionTime}}</td>
+          <td>{{this.paymentType}}</td>
+          <td>{{this.order.id}}</td>
           <td>Rp {{this.amount}}</td>
-          <td>{{this.status}}</td>
+          <td>{{this.bank}}</td>
+          <td>{{this.approvalCode}}</td>
           <td>
             <a
-              href='/payments/edit/{{this.id}}'
+              href='/admin/payment/{{this.id}}'
               class='btn btn-sm btn-warning me-1'
-            >Edit</a>
-            <form
-              action='/payments/delete/{{this.id}}'
-              method='POST'
-              style='display:inline;'
-            >
-              <button
-                type='submit'
-                class='btn btn-sm btn-danger'
-              >Delete</button>
-            </form>
+            >Details</a>
           </td>
         </tr>
       {{/each}}

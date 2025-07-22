@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { Delivery } from 'src/deliveries/delivery.entity';
+import { Payment } from 'src/payments/payments.entity';
 
 @Entity()
 export class Order {
@@ -38,6 +39,9 @@ export class Order {
 
   @Column({ default: false })
   completion: boolean;
+
+  @OneToOne(() => Payment, (payment) => payment.order, { cascade: true })
+  payment: Relation<Payment>;
 
   @CreateDateColumn()
   createdAt: Date;

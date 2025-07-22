@@ -73,6 +73,13 @@ export class CartsService {
     return cartItem;
   }
 
+  async countCartItems(cartId: string) {
+    const cart = await this.validCart(cartId);
+    const count = cart.items.length;
+
+    return count;
+  }
+
   private async recalculateCartTotal(cartId: string) {
     const items = await this.cartsItemRepository.find({
       where: { cart: { id: cartId } },
@@ -130,20 +137,6 @@ export class CartsService {
     };
   }
 
-  async findCartById(id: string) {
-    const cart = await this.validCart(id);
-
-    return cart;
-  }
-
-  async findCartByUser(key: string) {
-    await this.usersService.validUser(key);
-
-    const cart = await this.validCart(key);
-
-    return cart;
-  }
-
   async deleteCart(id: string) {
     const cartToDelete = await this.validCart(id);
 
@@ -168,9 +161,11 @@ export class CartsService {
     const subtotal = quantity * product.price;
     const existedCartItem = await this.existCartItem(productId);
     if (existedCartItem) {
+      const newQuantity = Number(existedCartItem.quantity) + Number(quantity);
+      const newSubtotal = newQuantity * product.price;
       const updateCartItemDto: UpdateCartItemDto = {
-        quantity: quantity,
-        subtotal: subtotal,
+        quantity: newQuantity,
+        subtotal: newSubtotal,
       };
       try {
         await this.updateCartItem(existedCartItem.id, updateCartItemDto);
@@ -240,7 +235,6 @@ export class CartsService {
       throw new InternalServerErrorException();
     }
     const updatedCartitem = await this.validCartItem(id);
-    console.log(updatedCartitem);
     return updatedCartitem;
   }
 

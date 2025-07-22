@@ -36,6 +36,20 @@ export class AuthService {
     return result;
   }
 
+  async isAdmin(email: string) {
+    const user = await this.userService.findOne(email);
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    if (user.role !== 'admin') {
+      return false;
+    }
+
+    return true;
+  }
+
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 

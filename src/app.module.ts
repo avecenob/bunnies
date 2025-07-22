@@ -24,6 +24,7 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
     PaymentsModule,
     AdminModule,
     MidtransModule,
+    PaymentsModule,
     DeliveriesModule,
   ],
   controllers: [AppController],

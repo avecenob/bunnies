@@ -34,13 +34,19 @@ export class Product {
   stock: number;
 
   @ManyToOne(() => Category, (category) => category.products)
-  @JoinColumn({ name: 'categoryId' })
+  @JoinColumn()
   category: Relation<Category>;
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product, {
+    cascade: true,
+    orphanedRowAction: 'soft-delete',
+  })
   orderItems: Relation<OrderItem[]>;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  @OneToMany(() => CartItem, (cartItem) => cartItem.product, {
+    cascade: true,
+    orphanedRowAction: 'soft-delete',
+  })
   cartItems: Relation<CartItem[]>;
 
   @CreateDateColumn()
