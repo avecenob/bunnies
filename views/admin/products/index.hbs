@@ -4,17 +4,37 @@
   <a href="/admin/products/create" class="btn text-white" style="background-color: #DA1E48;">
     + Create New
   </a>
-  <div class="d-flex gap-2 ms-auto">
     <button class="btn btn-outline-danger" id="deleteSelectedBtn">Delete Selection</button>
-    <form class="d-flex" method="GET" action="/products">
-      <input
-        class="form-control"
-        type="search"
-        name="q"
-        placeholder="Search"
-        value="{{query}}"
-      />
+  <div class="d-flex gap-2 ms-auto">
+    <form method="GET" action="/admin/products/" class="mb-4">
+      <div class="d-flex justify-content-center align-items-center gap-2" style="max-width: 500px; margin: auto;">
+        <div class="input-group" style="flex: 1;">
+          <input
+            type="text"
+            class="form-control"
+            name="name"
+            placeholder="Cari produk..."
+            value="{{filters.name}}"
+            aria-label="Cari produk"
+          />
+          <button class="btn btn-secondary fw-bold" type="submit">
+            <i class="bi bi-search"></i> Cari
+          </button>
+        </div>
+        {{#if filters.name}}
+          <button type="button" class="btn btn-outline-secondary" id="resetSearchBtn">
+            <i class="bi bi-x"></i> Hapus Pencarian
+          </button>
+        {{/if}}
+      </div>
+      {{#each filters.selectedCategories}}
+        <input type="hidden" name="category" value="{{this}}" />
+      {{/each}}
+      <input type="hidden" name="minPrice" value="{{filters.minPrice}}" />
+      <input type="hidden" name="maxPrice" value="{{filters.maxPrice}}" />
+      <input type="hidden" name="availability" value="{{filters.availability}}" />
     </form>
+
   </div>
 </div>
 
@@ -26,8 +46,10 @@
           <th scope="col">#</th>
           <th scope="col">Gambar</th>
           <th scope="col">Nama</th>
+          <th scope="col">Kategori</th>
           <th scope="col">Harga</th>
           <th scope="col">Stok</th>
+          <th scope="col">Terjual</th>
           <th scope="col">Kelola</th>
         </tr>
       </thead>
@@ -46,8 +68,10 @@
               />
             </td>
             <td>{{this.name}}</td>
+            <td>{{capitalize this.category.name}}</td>
             <td>Rp {{this.price}}</td>
             <td>{{this.stock}}</td>
+            <td>{{this.sold}}</td>
             <td>
               <a href="products/edit/{{this.id}}" class="btn btn-sm btn-warning me-1">Edit</a>
               <form class="deleteProductForm" data-id="{{this.id}}" style="display: inline;">
@@ -73,11 +97,18 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
+    const resetSearchBtn = document.getElementById('resetSearchBtn');
+    if (resetSearchBtn) {
+      resetSearchBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('name');
+        window.location.href = url.toString();
+      });
+    }
     document.querySelectorAll('.deleteProductForm').forEach(form => {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = form.dataset.id;
-        console.log(id);
         try {
           const response = await fetch(`/products/${id}`, {
             method: 'DELETE'

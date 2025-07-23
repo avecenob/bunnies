@@ -33,6 +33,9 @@ export class Product {
   @Column()
   stock: number;
 
+  @Column({ default: 0 })
+  sold: number;
+
   @ManyToOne(() => Category, (category) => category.products)
   @JoinColumn()
   category: Relation<Category>;

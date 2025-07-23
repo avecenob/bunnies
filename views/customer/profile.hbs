@@ -21,7 +21,7 @@
       id="phone"
       name="phone"
       value="{{user.phone}}"
-      required
+      
     />
   </div>
 
@@ -32,12 +32,12 @@
       id="address"
       name="address"
       rows="3"
-      required
+      
     >{{user.address}}</textarea>
   </div>
 
   <div class="d-flex justify-content-between">
-    <a href="/orders" class="btn btn-outline-secondary">Lihat Pesanan</a>
+    <a href="/orders/user/{{{user.id}}}" class="btn btn-outline-secondary">Lihat Pesanan</a>
     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
   </div>
 </form>
@@ -70,12 +70,13 @@
           credentials: 'include',
           body: JSON.stringify(profileData),
         });
-        const result = response.json();
+        const result = await response.json();
+        console.log(result);
         if (response.ok) {
-          alert(result.message || 'Profil berhasil diperbarui');
+          alert('Profil berhasil diperbarui');
           window.location.reload();
         } else {
-          alert(result.message || 'Profil gagal diperbarui');
+          alert(`Pembaruan profil gagal\n\n${result.message.map(message => '• ' + message).join('\n')}`);
         }
       } catch (error){
         console.log(error);

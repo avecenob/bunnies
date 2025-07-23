@@ -1,11 +1,11 @@
 import {
   Body,
   Controller,
-  // Delete,
   Get,
   HttpStatus,
   Param,
   Post,
+  Query,
   Render,
   Req,
   Res,
@@ -50,6 +50,17 @@ export class AdminController {
     return payload;
   }
 
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('accessToken');
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Logout berhasil',
+      redirect: '/admin/login',
+    };
+  }
+
   @Get('/dashboard')
   async index(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies?.accessToken;
@@ -63,18 +74,20 @@ export class AdminController {
   }
 
   @Get('products')
-  async productsList(@Req() req: Request, @Res() res: Response) {
+  @Render('admin/products')
+  async productsList(@Req() req: Request, @Query() query: any) {
     const token = req.cookies?.accessToken;
     const payload = await this.extractPayload(token);
     const user = await this.usersService.findOne(payload.email);
-    const products = await this.productsService.findAllProducts();
+    const products = await this.productsService.findAllProducts(query);
 
-    return res.render('admin/products/index', {
+    return {
       layout: 'layouts/admin',
       title: 'Produk',
       data: products,
       user: user,
-    });
+      filters: { name: query.name },
+    };
   }
 
   @Get('products/create')
@@ -151,30 +164,23 @@ export class AdminController {
     });
   }
 
-  // @Delete('products/:id')
-  // @Redirect('products')
-  // async adminDeleteProduct(@Param() params: any) {
-  //   this.productsService.deleteProduct(params.id);
-
-  //   return {
-  //     status: HttpStatus.OK,
-  //     message: `product with id: ${params.id} deleted`,
-  //   };
-  // }
-
   @Get('orders')
-  async renderAdminOrders(@Req() req: Request, @Res() res: Response) {
+  @Render('admin/orders/index')
+  async renderAdminOrders(@Req() req: Request, @Query() query: any) {
     const token = req.cookies?.accessToken;
     const payload = await this.extractPayload(token);
     const user = await this.usersService.findOne(payload.email);
-    const orders = await this.ordersService.findAllOrders();
+    const orders = await this.ordersService.findAllOrders(query);
 
-    return res.render('admin/orders/index', {
+    return {
       layout: 'layouts/admin',
       title: 'Pesanan',
       data: orders,
       user: user,
-    });
+      filters: {
+        id: query.id,
+      },
+    };
   }
 
   @Get('orders/:id')
@@ -194,16 +200,36 @@ export class AdminController {
   }
 
   @Get('payments')
-  async renderAdminPayments(@Req() req: Request, @Res() res: Response) {
+  @Render('admin/payments')
+  async renderAdminPayments(@Req() req: Request, @Query() query: any) {
     const token = req.cookies?.accessToken;
     const payload = await this.extractPayload(token);
     const user = await this.usersService.findOne(payload.email);
-    const payments = await this.paymentsService.findAllPayments();
-    return res.render('admin/payments', {
+    const payments = await this.paymentsService.findAllPayments(query);
+    return {
       layout: 'layouts/admin',
       title: 'Pembayaran',
       user: user,
       payments: payments,
-    });
+      filters: {
+        id: query.id,
+      },
+    };
+  }
+
+  @Get('orders/:id')
+  @Render('admin/payments/details')
+  async renderAdminPaymentDetails(@Req() req: Request, @Param() params: any) {
+    const token = req.cookies?.accessToken;
+    const payload = await this.extractPayload(token);
+    const user = await this.usersService.findOne(payload.email);
+    const payment = await this.paymentsService.findPaymentByOrderId(params.id);
+
+    return {
+      layout: 'layouts/admin',
+      title: 'Pesanan',
+      payment: payment,
+      user: user,
+    };
   }
 }

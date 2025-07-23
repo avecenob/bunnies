@@ -23,9 +23,16 @@ export class PaymentsService {
     }
   }
 
-  async findAllPayments() {
+  async findAllPayments(query?: any) {
+    const where: any = {};
+    if (query?.id) {
+      where.transactionId = query.id;
+    }
     return await this.paymentsRepository.find({
-      relations: ['order'],
+      where: [{ transactionId: query.id }, { order: { id: query.id } }],
+      relations: {
+        order: true,
+      },
     });
   }
 

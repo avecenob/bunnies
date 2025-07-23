@@ -1,88 +1,62 @@
-    <div class="container py-5" style="max-width: 600px;">
-      <h2 class="mb-4 text-center" style="color: #DA1E48;">Register</h2>
+<div class="container py-5" style="max-width: 600px;">
+  <h2 class="mb-4 text-center" style="color: #DA1E48;">Register</h2>
 
-      <form id="registerForm">
-        <div class="mb-3">
-          <label for="name" class="form-label">Nama<small class="text-muted">*</small></label>
-          <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="email" class="form-label">Email<small class="text-muted">*</small></label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="password" class="form-label">Password<small class="text-muted">*</small> </label>
-          <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 6 karakter" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="phone" class="form-label">Nomor Telepon <small class="text-muted">(opsional)</small></label>
-          <input type="text" class="form-control" id="phone" name="phone" placeholder="081234567891"/>
-        </div>
-
-        <div class="mb-3">
-          <label for="address" class="form-label">Alamat <small class="text-muted">(opsional)</small></label>
-          <textarea class="form-control" id="address" name="address" rows="3"></textarea>
-        </div>
-
-        <button id="registerBtn" type="click" class="btn w-100 text-white" style="background-color: #DA1E48;">Register</button>
-
-        <p class="mt-3 text-center">
-          Sudah punya akun?
-          <a href="/auth/login" class="text-decoration-none">Login di sini</a>
-        </p>
-      </form>
+  <form id="registerForm">
+    <div class="mb-3">
+      <label for="name" class="form-label">Nama<small class="text-danger"> *</small></label>
+      <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" autofocus />
     </div>
+
+    <div class="mb-3">
+      <label for="email" class="form-label">Email<small class="text-danger"> *</small></label>
+      <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" />
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password<small class="text-danger"> *</small></label>
+      <input type="password" class="form-control" id="password" name="password" />
+    </div>
+
+    <div class="mb-3">
+      <label for="phone" class="form-label">Nomor Telepon <small class="text-muted">(opsional)</small></label>
+      <input type="text" class="form-control" id="phone" name="phone" placeholder="081234567891" />
+    </div>
+
+    <div class="mb-3">
+      <label for="address" class="form-label">Alamat <small class="text-muted">(opsional)</small></label>
+      <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+    </div>
+
+    <p class="text-muted"><small class="text-danger">*</small> Wajib diisi</p>
+
+    <button type="submit" id="registerBtn" class="btn w-100 text-white" style="background-color: #DA1E48;">Register</button>
+
+    <p class="mt-3 text-center">
+      Sudah punya akun?
+      <a href="/auth/login" class="text-decoration-none">Login di sini</a>
+    </p>
+  </form>
+  <div id="registerAlertContainer"></div>
+</div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded');
     const registerForm = document.getElementById('registerForm');
-    const registerBtn = document.getElementById('registerBtn');
+    const registerAlertContainer = document.getElementById('registerAlertContainer');
 
-    registerBtn.addEventListener('click', async (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      console.log('submit clicked');
+      registerAlertContainer.innerHTML = '';
+
       const registerData = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         address: document.getElementById('address').value,
         phone: document.getElementById('phone').value,
-      }
-      let nameError, emailError, passwordError, phoneError, addressError, error;
-      let regexPhone = /^(\+62|0)\d{9,12}$/
-      if (registerData.name === '') {
-        nameError = 'Nama tidak boleh kosong';
-        error = true;
-      }
-      if(registerData.email === '') {
-        emailError = 'Email tidak boleh kosong';
-        error = true;
-      }
-      if(!registerData.email.includes('@')) {
-        emailError = 'Email harus mengandung karakter "@"';
-        error = true;
-      }
-      if (registerData.password === '') {
-        passwordError = 'Password tidak boleh kosong';
-        error = true;
-      }
-      if (registerData.password.length < 6) {
-        passwordError = 'Password harus minimal 6 karakter';
-        error = true;
-      }
-      if (regexPhone.test(registerData.phone) === false && registerData.phone !== '') {
-        phoneError = 'Nomor telepon tidak valid';
-        error = true;
-      }
-      
-      if (error) {
-        alert(`${nameError || ''}\n${emailError || ''}\n${passwordError || ''}\n${phoneError || ''}\n${addressError || ''}`);
-        return;
-      }
+      };
+
+
 
       try {
         const response = await fetch('/register', {
@@ -96,15 +70,31 @@
         const result = await response.json();
 
         if (response.ok) {
-          alert(result.message || 'Register berhasil');
-          window.location.href = '/'; // login redirect to home
+          alert('Register berhasil, silakan login');
+          window.location.href = '/auth/login';
         } else {
-          alert('Register gagal');
+          let messages = [];
+          if (Array.isArray(result.message)) {
+            messages = result.message;
+          } else if (typeof result.message === 'string') {
+            messages = [result.message];
+          }
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-danger mt-3';
+          alertDiv.innerHTML = `
+            <strong>Register gagal:</strong>
+            <ul class="mb-0">
+              ${messages.map(msg => `<li>${msg}</li>`).join('')}
+            </ul>
+          `;
+          registerAlertContainer.appendChild(alertDiv);
         }
       } catch (error) {
-        console.log(error);
-        alert('Terjadi kesalahan saat register');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger mt-3';
+        alertDiv.textContent = 'Terjadi kesalahan saat register';
+        registerAlertContainer.appendChild(alertDiv);
       }
-    })
+    });
   });
 </script>

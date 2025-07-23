@@ -1,0 +1,49 @@
+<h2 class="mb-4" >Pesanan Saya</h2>
+
+  <div class="text-end">
+  <a href="/users/profile/{{{user.sub}}}" class="btn btn-secondary">← Kembali ke profil</a>
+</div>
+<div class="container py-5">
+
+  {{#unless orders.length}}
+    <div class="alert alert-warning text-center fw-semibold" role="alert">
+      Belum ada pesanan.
+    </div>
+  {{/unless}}
+
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {{#each orders}}
+      <div class="col">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-bold {{#if (eq this.completion true)}}bg-success{{else}}bg-danger{{/if}} text-white">
+            {{#if (eq this.completion true)}}
+              Selesai
+            {{else}}
+              Belum Selesai
+            {{/if}}
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">ID: {{this.id}}</h5>
+            <p class="mb-1"><strong>Tanggal:</strong> {{formatDate this.createdAt}}</p>
+            <p class="mb-1"><strong>Total:</strong> Rp {{this.total}}</p>
+            <p class="mb-1"><strong>Status:</strong> {{this.status}}</p>
+            <ul class="list-group list-group-flush mb-2">
+              {{#each this.items}}
+                <li class="list-group-item">
+                  {{this.quantity}} x {{this.product.name}} <span class="float-end">Rp {{this.subtotal}}</span>
+                </li>
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    // Additional JS can be added here if needed
+    console.log({{{json user}}})
+  });
+</script>

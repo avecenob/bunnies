@@ -1,3 +1,30 @@
+<h2 class="mb-3">Daftar Pembayaran</h2>
+
+  <div class="d-flex gap-2 ms-auto">
+    <form method="GET" action="/admin/payments" class="mb-4">
+      <div class="d-flex justify-content-center align-items-center gap-2" style="max-width: 500px; margin: auto;">
+        <div class="input-group" style="flex: 1;">
+          <input
+            type="text"
+            class="form-control"
+            name="id"
+            placeholder="Cari ID pembayaran..."
+            value="{{filters.id}}"
+            aria-label="Cari ID pembayaran"
+          />
+          <button class="btn btn-secondary fw-bold" type="submit">
+            <i class="bi bi-search"></i> Cari
+          </button>
+        </div>
+        {{#if filters.id}}
+          <button type="button" class="btn btn-outline-secondary" id="resetSearchBtn">
+            <i class="bi bi-x"></i> Hapus Pencarian
+          </button>
+        {{/if}}
+      </div>
+    </form>
+  </div>
+
 <div class='table-responsive'>
   <table class='table table-bordered table-hover align-middle text-center'>
     <thead class='table-dark'>
@@ -11,7 +38,6 @@
         <th scope='col'>Jumlah</th>
         <th scope='col'>Bank</th>
         <th scope='col'>Approval</th>
-        <th scope='col'>Kelola</th>
       </tr>
     </thead>
     <tbody>
@@ -26,14 +52,19 @@
           <td>Rp {{this.amount}}</td>
           <td>{{this.bank}}</td>
           <td>{{this.approvalCode}}</td>
-          <td>
-            <a
-              href='/admin/payment/{{this.id}}'
-              class='btn btn-sm btn-warning me-1'
-            >Details</a>
-          </td>
         </tr>
       {{/each}}
     </tbody>
   </table>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const resetSearchBtn = document.getElementById('resetSearchBtn');
+    if (resetSearchBtn) {
+      resetSearchBtn.addEventListener('click', () => {
+        window.location.href = '/admin/payments';
+      });
+    }
+  });
+</script>

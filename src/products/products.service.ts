@@ -6,7 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
-import { Repository } from 'typeorm';
+import {
+  And,
+  In,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Category } from './category.entity';
 import { CreateProductDto } from 'src/common/dto/products/create-product.dto';
 import { CreateCategoryDto } from 'src/common/dto/products/create-category.dto';
@@ -79,8 +86,52 @@ export class ProductsService {
     return product;
   }
 
-  async findAllProducts() {
-    const products = await this.productsRepository.find();
+  async findAllProducts(query?: any) {
+    const where: any = {};
+    if (query?.name) {
+      where.name = Like(`%${query.name}%`);
+    }
+
+    if (query?.category) {
+      where.category = {
+        name: In(
+          Array.isArray(query.category) ? query.category : [query.category],
+        ),
+      };
+    }
+
+    if (query?.availability === 'inStock') {
+      where.stock = MoreThanOrEqual(1);
+    }
+
+    if (query?.minPrice && query?.maxPrice) {
+      where.price = And(
+        MoreThanOrEqual(query.minPrice),
+        LessThanOrEqual(query.maxPrice),
+      );
+    } else if (query?.minPrice) {
+      where.price = MoreThanOrEqual(query.minPrice);
+    } else if (query?.maxPrice) {
+      where.price = LessThanOrEqual(query.maxPrice);
+    }
+
+    const products = await this.productsRepository.find({
+      where,
+      relations: {
+        category: true,
+      },
+    });
+    return products;
+  }
+
+  async findFeaturedProducts() {
+    const products = await this.productsRepository.find({
+      order: {
+        sold: 'DESC',
+      },
+      take: 6,
+    });
+
     return products;
   }
 
@@ -90,7 +141,7 @@ export class ProductsService {
     return product;
   }
 
-  async updateProduct(id: string, updateProductDto: Partial<UpdateProductDto>) {
+  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
     const productToUpdate = await this.validProduct(id);
 
     if (!productToUpdate) {
@@ -106,20 +157,26 @@ export class ProductsService {
     });
 
     try {
-      await this.productsRepository.update(productToUpdate.id, {
-        ...(name && { name }),
-        ...(category && { category }),
-        ...(description && { description }),
-        ...(price && { price }),
-        ...(stock && { stock }),
-        ...(image && { image }),
-      });
+      const updatedProduct = await this.productsRepository.update(
+        productToUpdate.id,
+        {
+          ...(name && { name }),
+          ...(category && { category }),
+          ...(description && { description }),
+          ...(typeof price !== 'undefined' && { price }),
+          ...(typeof stock !== 'undefined' && { stock }),
+          ...(image && { image }),
+        },
+      );
+      console.log(updatedProduct);
+      return {
+        status: HttpStatus.OK,
+        message: `product with id: ${productToUpdate.id} updated`,
+      };
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
-
-    return productToUpdate;
   }
 
   async deleteProduct(id: string) {

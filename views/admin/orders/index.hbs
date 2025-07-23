@@ -1,4 +1,29 @@
 <h2 class="mb-3">Daftar Pesanan</h2>
+  <div class="d-flex gap-2 ms-auto">
+    <form method="GET" action="/admin/orders" class="mb-4">
+      <div class="d-flex justify-content-center align-items-center gap-2" style="max-width: 500px; margin: auto;">
+        <div class="input-group" style="flex: 1;">
+          <input
+            type="text"
+            class="form-control"
+            name="id"
+            placeholder="Cari ID pesanan..."
+            value="{{filters.id}}"
+            aria-label="Cari ID pesanan"
+          />
+          <button class="btn btn-secondary fw-bold" type="submit">
+            <i class="bi bi-search"></i> Cari
+          </button>
+        </div>
+        {{#if filters.id}}
+          <button type="button" class="btn btn-outline-secondary" id="resetSearchBtn">
+            <i class="bi bi-x"></i> Hapus Pencarian
+          </button>
+        {{/if}}
+      </div>
+    </form>
+  </div>
+
 <div class='table-responsive'>
   <table class='table table-bordered table-hover align-middle text-center'>
     <thead class='table-dark'>
@@ -18,9 +43,9 @@
       {{#each data}}
         <tr>
           <th scope='row'>{{increment @index}}</th>
-          <td>{{this.id}}</td>
+          <td class="text-start">{{this.id}}</td>
           <td>{{this.user.email}}</td>
-          <td>Rp {{this.total}}</td>
+          <td class="text-start">Rp {{this.total}}</td>
           <td>{{this.status}}</td>
           {{#if this.completion}}
           <td>✅</td>
@@ -40,3 +65,14 @@
     </tbody>
   </table>
 </div>
+
+<script>
+  const resetSearchBtn = document.getElementById('resetSearchBtn');
+  if (resetSearchBtn) {
+    resetSearchBtn.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('name');
+      window.location.href = url.toString();
+    });
+  }
+</script>

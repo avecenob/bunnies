@@ -1,69 +1,85 @@
+<div class="container py-5" style="max-width: 500px;">
+  <h2 class="mb-4 text-center" style="color: #DA1E48;">Login</h2>
 
+  <form id="loginForm">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email" name="email" placeholder="example@domain.com" autofocus />
+    </div>
 
-      <div class="container py-5" style="max-width: 500px;">
-        <h2 class="mb-4 text-center" style="color: #DA1E48;">Login</h2>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password" />
+    </div>
 
-        <form id="loginForm">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" required />
-          </div>
+    <button type="submit" id="loginBtn" class="btn w-100 text-white" style="background-color: #DA1E48;">Login</button>
 
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required />
-          </div>
+    <p class="mt-3 text-center">
+      Belum punya akun?
+      <a href="/register" class="text-decoration-none">Daftar di sini</a>
+    </p>
+  </form>
+  <div id="loginAlertContainer"></div>
+</div>
 
-          <button id="loginBtn" type="click" class="btn w-100 text-white" style="background-color: #DA1E48;">Login</button>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const loginAlertContainer = document.getElementById('loginAlertContainer');
 
-          <p class="mt-3 text-center">
-            Belum punya akun?
-            <a href="/register" class="text-decoration-none">Daftar di sini</a>
-          </p>
-        </form>
-      </div>
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
+      // Remove previous alert
+      loginAlertContainer.innerHTML = '';
 
-      <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          console.log('DOM loaded');
-          const loginForm = document.getElementById('loginForm');
-          const loginBtn = document.getElementById('loginBtn');
-          console.log(loginForm);
-          console.log(loginBtn);
+      const loginData = JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+      });
 
-          loginBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            console.log('submit clicked');
-            const loginData = JSON.stringify({
-              email: document.getElementById('email').value,
-              password: document.getElementById('password').value,
-            });
-
-            try {
-              const redirect = '/';
-              const response = await fetch('/auth/login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: loginData,
-              });
-
-              const result = await response.json();
-              console.log(result);
-
-              if (response.ok) {
-                alert(result.message || 'Login berhasil');
-                window.location.href = redirect; 
-              } else {
-                alert(result.message || 'Login gagal');
-              }
-            } catch (error) {
-              console.log(error);
-              alert('Terjadi kesalahan saat login');
-            }
-          })
+      try {
+        const redirect = '/';
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: loginData,
         });
-      </script>
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message || 'Login berhasil');
+          window.location.href = redirect;
+        } else {
+          // Format message(s)
+          let messages = [];
+          if (Array.isArray(result.message)) {
+            messages = result.message;
+          } else if (typeof result.message === 'string') {
+            messages = [result.message];
+          }
+
+          // Create alert box
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-danger mt-3';
+          alertDiv.innerHTML = `
+            <strong>Login gagal:</strong>
+            <ul class="mb-0">
+              ${messages.map(msg => `<li>${msg}</li>`).join('')}
+            </ul>
+          `;
+          loginAlertContainer.appendChild(alertDiv);
+        }
+      } catch (error) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger mt-3';
+        alertDiv.textContent = 'Terjadi kesalahan saat login';
+        loginAlertContainer.appendChild(alertDiv);
+      }
+    });
+  });
+</script>

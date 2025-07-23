@@ -24,7 +24,7 @@
 
     <div class="mb-3">
       <label for="price" class="form-label">Harga (Rp)</label>
-      <input class="form-control" type="number" id="price" name="price" min="0" value="{{data.product.price}}" required />
+      <input class="form-control" type="number" id="price" name="price" min="1" value="{{data.product.price}}" required />
     </div>
 
     <div class="mb-3">
@@ -32,7 +32,7 @@
       <select class="form-select" id="category" name="categoryId" required>
         <option disabled>Pilih kategori</option>
         {{#each data.categories}}
-          <option value="{{this.id}}" {{#if (eq this.id ../data.product.categoryId)}}selected{{/if}}>{{this.name}}</option>
+          <option value="{{this.id}}" {{#if (eq this.id ../data.product.category.id)}}selected{{/if}}>{{this.name}}</option>
         {{/each}}
       </select>
     </div>
@@ -55,29 +55,40 @@
 </div>
 
 <script>
-  const form = document.getElementById('editProductForm');
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const id = formData.get('id');
-
-    try {
-      const response = await fetch(`/products/${id}`, {
-        method: 'PUT',
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(result.message || 'Produk berhasil diupdate');
-        window.location.href = result.redirect || '/admin/products';
-      } else {
-        alert(result.message || 'Gagal mengupdate produk');
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    console.log('Product', {{{json data.product}}});
+    console.log('Categories', {{{json data.categories}}});
+    const form = document.getElementById('editProductForm');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const id = formData.get('id');
+      const existingImage = `{{{data.product.image}}}`;
+      console.log(formData);
+      if (existingImage) {
+        formData.append('image', existingImage);
       }
-    } catch (err) {
-      console.log(err);
-      alert('Gagal mengirim data. Cek koneksi atau server.');
-    }
-  });
+
+      try {
+        const response = await fetch(`/products/${id}`, {
+          method: 'PUT',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message || 'Produk berhasil diupdate');
+          window.location.href = result.redirect || '/admin/products';
+        } else {
+          alert(`Update produk gagal\n\n${result.message.map(message => '• ' + message).join('\n')}`);
+        }
+      } catch (err) {
+        console.log(err);
+        alert('Gagal mengirim data. Cek koneksi atau server.');
+      }
+    });
+  })
+    
 </script>

@@ -18,13 +18,13 @@ export class AuthService {
     const user = await this.userService.findOne(email);
 
     if (!user) {
-      throw new NotFoundException('invalid email');
+      throw new NotFoundException('Email tidak terdaftar');
     }
 
     const validUser = user && (await bcrypt.compare(passwd, user.password));
 
     if (!validUser) {
-      throw new UnauthorizedException('wrong password');
+      throw new UnauthorizedException('Password salah');
     }
 
     const result = {

@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './order.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { OrderItem } from './order-item.entity';
-import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
+import { UpdateOrderCompletionDto } from 'src/common/dto/orders/update-order-completion.dto';
 import { UpdateOrderItemDto } from 'src/common/dto/orders/update-order-item.dto';
 import { ProductsService } from 'src/products/products.service';
 import { CreatePendingOrderDto } from 'src/common/dto/orders/create-pending-order.dto';
@@ -66,8 +66,14 @@ export class OrdersService {
     });
   }
 
-  async findAllOrders() {
+  async findAllOrders(query?: any) {
+    const where: any = {};
+    if (query?.id) {
+      where.id = Like(`%${query.id}%`);
+    }
+
     const orders = await this.ordersRepository.find({
+      where,
       relations: {
         user: true,
         items: {
@@ -98,10 +104,10 @@ export class OrdersService {
     return order;
   }
 
-  async findOrdersByUserId(userId: string) {
+  async findOrdersByUser(key: string) {
     const ordersByUser = await this.ordersRepository.find({
       where: {
-        user: { id: userId },
+        user: [{ id: key }, { email: key }],
       },
       relations: {
         user: true,
@@ -109,6 +115,7 @@ export class OrdersService {
           product: true,
         },
       },
+      order: { createdAt: 'DESC' },
     });
 
     if (!ordersByUser) {
@@ -118,32 +125,32 @@ export class OrdersService {
     return ordersByUser;
   }
 
-  async updateOrderStatus(
+  async updateOrderCompletion(
     id: string,
-    updateOrderStatusDto: UpdateOrderStatusDto,
+    updateOrderCompletionDto: UpdateOrderCompletionDto,
   ) {
     const orderToUpdate = await this.ordersRepository.findOneBy({ id });
 
     if (!orderToUpdate) {
       throw new NotFoundException('order not found');
     }
+    console.log('orderToUpdate', orderToUpdate);
 
-    const { status } = updateOrderStatusDto;
+    const { completion } = updateOrderCompletionDto;
 
     try {
-      await this.ordersRepository.update(orderToUpdate.id, {
-        ...(status && { status }),
-      });
+      const updatedOrder = await this.ordersRepository.update(
+        orderToUpdate.id,
+        {
+          ...(completion && { completion }),
+        },
+      );
+      console.log('updatedOrder', updatedOrder);
+      return updatedOrder;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
-
-    return {
-      status: HttpStatus.OK,
-      message: `order with id: ${orderToUpdate.id} updated`,
-      data: orderToUpdate,
-    };
   }
 
   /**

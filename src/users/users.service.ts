@@ -20,28 +20,9 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  /**
-   *
-   * extract method for checking valid user
-   *
-   * @param key {string} user id or email
-   * @returns {User} data
-   */
-  async validUser(key: string) {
-    const user = await this.userRepository.findOne({
-      where: [{ id: key }, { email: key }],
-    });
-
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
-
-    return user;
-  }
-
   async checkRegistered(email: string) {
-    if (await this.validUser(email)) {
-      throw new ConflictException('email already registered');
+    if (await this.findOne(email)) {
+      throw new ConflictException('Email ini sudah terdaftar');
     }
 
     return null;
@@ -83,13 +64,19 @@ export class UsersService {
   }
 
   async findOne(key: string) {
-    const user = await this.validUser(key);
+    const user = await this.userRepository.findOne({
+      where: [{ id: key }, { email: key }],
+    });
 
     return user;
   }
 
   async updateById(id: string, updateUserDto: UpdateUserDto) {
-    const userToUpdate = await this.validUser(id);
+    const userToUpdate = await this.findOne(id);
+
+    if (!userToUpdate) {
+      throw new NotFoundException(`User with id: ${id} not found`);
+    }
 
     const { email, password, address, phone } = updateUserDto;
     const hashedPassword = password
@@ -115,7 +102,11 @@ export class UsersService {
   }
 
   async deleteById(id: string) {
-    const userToDelete = await this.validUser(id);
+    const userToDelete = await this.findOne(id);
+
+    if (!userToDelete) {
+      throw new NotFoundException(`User with id: ${id} not found`);
+    }
 
     try {
       await this.userRepository.delete(userToDelete.id);

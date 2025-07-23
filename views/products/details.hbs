@@ -61,6 +61,7 @@
 
         if (res.ok) {
           alert(data.message || 'Produk berhasil ditambahkan ke keranjang!');
+          window.location.reload();
         } else {
           alert(data.message || 'Gagal menambahkan produk.');
         }

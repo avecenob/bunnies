@@ -4,7 +4,7 @@
     class="d-none d-md-block text-white p-4"
     style="width: 250px; background-color: #DA521E;"
   >
-    <form method="GET" action="/catalogue">
+    <form method="GET" action="/products/catalogue">
       <!-- Kategori -->
       <div class="mb-4">
         <label class="form-label fw-semibold" style="color: #DAB01E;">Kategori</label>
@@ -43,9 +43,12 @@
       </div>
 
       <div class="d-grid">
-        <button class="btn fw-bold text-white" style="background-color: #DAB01E;">Terapkan Filter</button>
+        <button class="btn fw-bold" style="background-color: #DAB01E;">Terapkan Filter</button>
       </div>
     </form>
+      <div class="d-grid mt-3">
+        <button id="resetFilterBtn" class="btn fw-bold " style="background-color: #DAB01E;">Reset Filter</button>
+      </div>
   </aside>
 
   <!-- Offcanvas Sidebar for Mobile -->
@@ -61,7 +64,7 @@
       </div>
       <div class="offcanvas-body">
         <!-- Konten sidebar sama seperti di atas -->
-        <form method="GET" action="/catalogue">
+        <form method="GET" action="/products/catalogue">
           <!-- Kategori -->
           <div class="mb-4">
             <label class="form-label fw-semibold" style="color: #DAB01E;">Kategori</label>
@@ -90,7 +93,7 @@
             <div class="form-check">
               <input class="form-check-input" type="radio" name="availability" id="minStock" value="inStock"
                 {{#if (eq filters.availability "inStock")}}checked{{/if}}>
-              <label class="form-check-label text-white" for="minStock">Tersedia</label>
+              <label class="form-check-label text-white" for="minStock">Stok tersedia</label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="availability" id="mallStock" value="all"
@@ -103,6 +106,9 @@
             <button class="btn fw-bold text-white" style="background-color: #DAB01E;">Terapkan Filter</button>
           </div>
         </form>
+      <div class="d-grid mt-3">
+        <button id="resetFilterBtn" class="btn fw-bold " style="background-color: #DAB01E;">Reset Filter</button>
+      </div>
       </div>
     </div>
   </div>
@@ -110,12 +116,49 @@
   <!-- Konten Utama -->
   <main class="flex-grow-1 p-4">
     <h2 class="mb-4" style="color: #DA521E;">Katalog Produk</h2>
+<form method="GET" action="/products/catalogue" class="mb-4">
+  <div class="d-flex justify-content-center align-items-center gap-2" style="max-width: 500px; margin: auto;">
+    <div class="input-group" style="flex: 1;">
+      <input
+        type="text"
+        class="form-control"
+        name="name"
+        placeholder="Cari produk..."
+        value="{{filters.name}}"
+        aria-label="Cari produk"
+      />
+      <button class="btn text-white fw-bold" style="background-color: #DA521E;" type="submit">
+        <i class="bi bi-search"></i> Cari
+      </button>
+    </div>
+    {{#if filters.name}}
+      <button type="button" class="btn btn-outline-secondary" id="resetSearchBtn">
+        <i class="bi bi-x"></i> Hapus Pencarian
+      </button>
+    {{/if}}
+  </div>
+  {{#each filters.selectedCategories}}
+    <input type="hidden" name="category" value="{{this}}" />
+  {{/each}}
+  <input type="hidden" name="minPrice" value="{{filters.minPrice}}" />
+  <input type="hidden" name="maxPrice" value="{{filters.maxPrice}}" />
+  <input type="hidden" name="availability" value="{{filters.availability}}" />
+</form>
+
+    {{#unless products.length}}
+      <div class="alert alert-warning text-center fw-semibold" role="alert">
+        Produk tidak ditemukan.
+      </div>
+    {{/unless}}
 
     <div class="row row-cols-1 row-cols-md-4 g-2">
       {{#each products}}
       <div class="col">
         <div class="card shadow-sm text-center p-2" style="width: 250px; margin: auto">
           <div class="d-flex justify-content-center mt-3">
+            {{#unless (gt this.stock 0)}}
+              <span class="badge bg-danger position-absolute" style="top: 10px; left: 10px; z-index: 2;">Stok Habis</span>
+            {{/unless}}
             <img src="/images/products/{{this.image}}" class="card-img-top" alt="{{this.name}}" style="height: 150px; width: 150px" />
           </div>
           <div class="card-body">
@@ -154,3 +197,37 @@
     </nav>
   </main>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded')
+    const resetFilterBtn = document.getElementById('resetFilterBtn');
+    resetFilterBtn.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('category');
+      url.searchParams.delete('minPrice');
+      url.searchParams.delete('maxPrice');
+      url.searchParams.delete('availability');
+      window.location.href = url.toString();
+    });
+    console.log({{{products.length}}})
+    let filters = {{{json filters}}};
+    if(filters) {
+      console.log('Categories', filters.categories);
+    } else {
+      console.log('No filters data');
+    }
+    filters.categories.forEach(category => {
+      console.log('Category name: ', category);
+    })
+
+    const resetSearchBtn = document.getElementById('resetSearchBtn');
+    if (resetSearchBtn) {
+      resetSearchBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('name');
+        window.location.href = url.toString();
+      });
+    }
+  })
+</script>

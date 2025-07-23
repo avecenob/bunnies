@@ -7,9 +7,9 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Render,
   Req,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,7 +20,7 @@ import { UpdateProductDto } from 'src/common/dto/products/update-product-dto';
 import { UpdateCategoryDto } from 'src/common/dto/products/update-category.dto';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { JwtService } from '@nestjs/jwt';
@@ -29,6 +29,7 @@ import { JwtService } from '@nestjs/jwt';
 export class ProductsController {
   constructor(
     private productsService: ProductsService,
+    private categoriesService: ProductsService,
     private jwtService: JwtService,
   ) {}
 
@@ -58,10 +59,11 @@ export class ProductsController {
 
   @Get('catalogue')
   @Render('products/catalogue')
-  async renderCatalogue(@Req() req: Request) {
+  async renderCatalogue(@Req() req: Request, @Query() query: any) {
     const { accessToken, cartCount } = req.cookies;
     const user = await this.extractPayload(accessToken);
-    const products = await this.productsService.findAllProducts();
+    const products = await this.productsService.findAllProducts(query);
+    const categories = await this.productsService.findAllCategories();
     return {
       layout: 'layouts/shop',
       title: 'Katalog - Bunnies Bakery',
@@ -70,12 +72,21 @@ export class ProductsController {
       products: products,
       user: user,
       cartCount: cartCount,
+      filters: {
+        categories: categories.map((category) => category.name),
+        selectedCategories: query.category,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        availability: query.availability,
+        name: query.name,
+      },
     };
   }
 
   @Get()
-  async findAll() {
-    const products = await this.productsService.findAllProducts();
+  async findAll(@Query() query?: any) {
+    const products = await this.productsService.findAllProducts(query);
+    console.log('Query: ', query);
 
     return {
       statusCode: HttpStatus.OK,
@@ -89,6 +100,7 @@ export class ProductsController {
     const { accessToken, cartCount } = req.cookies;
     const user = await this.extractPayload(accessToken);
     const product = await this.productsService.findProductById(params.id);
+    // const categories = await this.categoriesService.findAllCategories();
 
     return {
       layout: 'layouts/shop',
@@ -122,31 +134,24 @@ export class ProductsController {
     }),
   )
   async updateProduct(
-    @Res() res: Response,
     @Param() params: any,
     @Body() body: any,
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
     const updateProductDto: UpdateProductDto = {
       name: body.name,
       price: parseInt(body.price),
-      categoryId: body.categoryId,
+      categoryId: parseInt(body.categoryId),
       description: body.description,
       stock: parseInt(body.stock),
-      image: image.filename,
+      image: image?.filename || body.image,
     };
+    console.log('updateProductDto', updateProductDto);
 
-    const product = await this.productsService.updateProduct(
+    return await this.productsService.updateProduct(
       params.id,
       updateProductDto,
     );
-
-    return res.status(200).json({
-      statusCode: HttpStatus.OK,
-      message: `product with id: ${params.id} updated`,
-      redirect: '/admin/products',
-      data: product,
-    });
 
     // return {
     //   status: HttpStatus.OK,

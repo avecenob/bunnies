@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { CartsService } from './carts/carts.service';
+import { ProductsService } from './products/products.service';
 dotenv.config();
 
 @Controller()
@@ -12,6 +13,7 @@ export class AppController {
     private readonly appService: AppService,
     private jwtService: JwtService,
     private cartsService: CartsService,
+    private productsService: ProductsService,
   ) {}
 
   @Get('/')
@@ -42,11 +44,14 @@ export class AppController {
       }
     }
 
+    const featuredProducts = await this.productsService.findFeaturedProducts();
+
     return {
       layout: 'layouts/shop',
       title: 'Home',
       user: user,
       cartCount: cartCount,
+      featured: featuredProducts,
     };
   }
 

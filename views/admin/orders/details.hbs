@@ -1,5 +1,18 @@
 <h2 class="mb-4">Detail Pesanan</h2>
 
+<div class="mb-4 text-start">
+  {{#if (eq order.completion true)}}
+    <span class="badge bg-success fs-5 px-3 py-2">Selesai</span>
+  {{else}}
+    <span class="badge bg-danger fs-5 px-3 py-2">Belum Selesai</span>
+    <form id="completeOrderForm" style="display: inline;">
+      <button type="submit" class="btn btn-outline-success btn-sm ms-2 fw-bold">
+        <i class="bi bi-check-circle"></i> Tandai Selesai
+      </button>
+    </form>
+  {{/if}}
+</div>
+
 <div class="row mb-4">
   <div class="col-md-6">
     <div class="card shadow-sm mb-3">
@@ -44,6 +57,38 @@
   </div>
 </div>
 
+
 <div class="text-end">
   <a href="/admin/orders" class="btn btn-secondary">← Kembali ke Daftar Pesanan</a>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const completeOrderForm = document.getElementById('completeOrderForm');
+    if (completeOrderForm) {
+      completeOrderForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = '{{{order.id}}}';
+        console.log(id);
+        if (!confirm('Yakin ingin menandai pesanan ini sebagai SELESAI?')) return;
+        try {
+          const response = await fetch(`/orders/complete/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ completion: true }), 
+          });
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message || 'Pesanan berhasil ditandai selesai');
+            window.location.reload();
+          } else {
+            alert(result.message || 'Gagal menandai pesanan');
+          }
+        } catch (err) {
+          alert('Terjadi kesalahan saat menyelesaikan pesanan');
+        }
+      });
+    }
+  });
+</script>

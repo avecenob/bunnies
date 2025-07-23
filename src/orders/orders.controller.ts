@@ -14,7 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { UpdateOrderStatusDto } from 'src/common/dto/orders/update-order-status.dto';
+import { UpdateOrderCompletionDto } from 'src/common/dto/orders/update-order-completion.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { CartsService } from 'src/carts/carts.service';
@@ -61,17 +61,44 @@ export class OrdersController {
     return this.ordersService.findOrderById(params.id);
   }
 
-  @Get('user/:userId')
-  findOrderByUserId(@Param() params: any) {
-    return this.ordersService.findOrdersByUserId(params.userId);
+  @Get('user/:key')
+  @Render('customer/orders')
+  async renderUserOrders(@Req() req: Request, @Res() res: Response) {
+    const { accessToken, cartCount } = req.cookies;
+    const user = await this.extractPayload(accessToken);
+    if (!user) {
+      return res.redirect('/login');
+    }
+    const orders = await this.ordersService.findOrdersByUser(user.id);
+    return {
+      layout: 'layouts/shop',
+      title: 'Pesanan Saya',
+      user: user,
+      orders: orders,
+      cartCount: cartCount,
+    };
   }
 
-  @Put('status/:id')
-  updateOrder(
+  @Get('user/data-only/:key')
+  findOrderByUserId(@Param() params: any) {
+    return this.ordersService.findOrdersByUser(params.key);
+  }
+
+  @Put('complete/:id')
+  async updateOrder(
     @Param() params: any,
-    @Body() updateOrderDto: UpdateOrderStatusDto,
+    @Body() updateOrderCompletionDto: UpdateOrderCompletionDto,
   ) {
-    return this.ordersService.updateOrderStatus(params.id, updateOrderDto);
+    const updatedOrder = await this.ordersService.updateOrderCompletion(
+      params.id,
+      updateOrderCompletionDto,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: `order with id: ${params.id} updated`,
+      data: updatedOrder,
+    };
   }
 
   @Delete(':id')
@@ -113,6 +140,9 @@ export class CheckoutController {
     const { accessToken, cartCount = undefined } = req.cookies;
     const payload = await this.extractPayload(accessToken);
     const user = await this.usersService.findOne(payload.email);
+    if (!user) {
+      throw new InternalServerErrorException('User not found');
+    }
     const cart = await this.cartsService.validCart(user.email);
     return {
       layout: 'layouts/shop',
@@ -136,6 +166,9 @@ export class CheckoutController {
     const { accessToken } = req.cookies;
     const payload = await this.extractPayload(accessToken);
     const user = await this.usersService.findOne(payload.email);
+    if (!user) {
+      throw new InternalServerErrorException('User not found');
+    }
     const cart = await this.cartsService.validCart(user.id);
 
     const orderId = 'ORDER-' + nanoid(10);
@@ -161,6 +194,7 @@ export class CheckoutController {
         const newQuantity = product.stock - item.quantity;
         await this.productsService.updateProduct(product.id, {
           stock: newQuantity,
+          sold: Number(product.sold) + Number(item.quantity),
         });
       });
     } catch (error) {

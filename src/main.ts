@@ -35,6 +35,9 @@ async function bootstrap() {
     return Array.isArray(array) && array.includes(value);
   });
   hbs.registerHelper('capitalize', (str: string) => {
+    if (typeof str !== 'string') return '';
+    if (str.length === 0) return str;
+    if (str.length === 1) return str.toUpperCase();
     return str.charAt(0).toUpperCase() + str.slice(1);
   });
   hbs.registerHelper('eq', (a: any, b: any) => {

@@ -47,7 +47,7 @@ export class AuthController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'login success',
+      message: 'Login berhasil',
     };
   }
 
@@ -57,7 +57,7 @@ export class AuthController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'logged out',
+      message: 'Logout berhasil',
       redirect: '/',
     };
   }

@@ -1,7 +1,7 @@
 
 
     <!-- Banner -->
-    <section class="bg-warning text-center text-white py-5" style="background-color: #DA521E !important;">
+    <section class="bg-warning text-center text-white py-5" style="background-color: #DA1E48 !important;">
       <div class="container">
         <h1 class="display-4 fw-bold">Selamat Datang di Bunnies Bakery!</h1>
         <p class="lead">Roti, kue, dan donat lezat langsung ke tangan Anda.</p>
@@ -14,18 +14,23 @@
       <div class="row row-cols-1 row-cols-md-3 g-4">
         {{#each featured}}
           <div class="col">
-            <div class="card h-100 shadow">
-              <img src="{{this.image}}" class="card-img-top" alt="{{this.name}}">
+            <div class="card h-30 shadow">
+              <img src="images/products/{{this.image}}" class="card-img-top image-fluid" alt="{{this.name}}" style="object-fit: contain;">
               <div class="card-body">
                 <h5 class="card-title">{{this.name}}</h5>
                 <p class="card-text">Rp {{this.price}}</p>
               </div>
               <div class="card-footer text-center">
-                <a href="/products/{{this.id}}" class="btn btn-sm text-white" style="background-color: #DA1E48;">Lihat Detail</a>
+                <a href="products/catalogue/{{this.id}}" class="btn btn-sm text-white" style="background-color: #DA1E48;">Lihat Detail</a>
               </div>
             </div>
           </div>
         {{/each}}
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="products/catalogue" class="btn btn-lg fw-bold text-white" style="background-color: #DA521E;">Jelajahi Katalog</a>
+        <i class="bi bi-arrow-right ms-2"></i>
       </div>
     </section>
 
@@ -35,7 +40,7 @@
         <h2 class="text-center mb-4" style="color: #DA521E;">Jelajahi Kategori</h2>
         <div class="row text-center">
           <div class="col-md-4 mb-3">
-            <a href="/catalogue?category=bread" class="text-decoration-none text-dark">
+            <a href="/products/catalogue?category=roti" class="text-decoration-none text-dark">
               <div class="card h-100 shadow">
                 <div class="card-body">
                   <h5 class="card-title fw-bold">Roti</h5>
@@ -45,7 +50,7 @@
             </a>
           </div>
           <div class="col-md-4 mb-3">
-            <a href="/catalogue?category=cake" class="text-decoration-none text-dark">
+            <a href="/products/catalogue?category=kue" class="text-decoration-none text-dark">
               <div class="card h-100 shadow">
                 <div class="card-body">
                   <h5 class="card-title fw-bold">Kue</h5>
@@ -55,7 +60,7 @@
             </a>
           </div>
           <div class="col-md-4 mb-3">
-            <a href="/catalogue?category=donut" class="text-decoration-none text-dark">
+            <a href="/products/catalogue?category=donat" class="text-decoration-none text-dark">
               <div class="card h-100 shadow">
                 <div class="card-body">
                   <h5 class="card-title fw-bold">Donat</h5>
@@ -67,3 +72,9 @@
         </div>
       </div>
     </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log({{json featured}})
+  })
+</script>

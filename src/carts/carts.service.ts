@@ -103,7 +103,10 @@ export class CartsService {
   async createCart(createCartDto: CreateCartDto) {
     const { userId } = createCartDto;
 
-    const user = await this.usersService.validUser(userId);
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException(`User with id: ${userId} not found`);
+    }
 
     const id = nanoid(10);
     const cart = this.cartsRepository.create({
