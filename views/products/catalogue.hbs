@@ -1,9 +1,10 @@
 <div class="d-flex flex-grow-1" style="min-height: calc(100vh - 112px);">
-  <!-- Sidebar -->
+  <!-- Sidebar (fixed on desktop, collapsible on mobile) -->
   <aside
-    class="d-none d-md-block text-white p-4"
-    style="width: 250px; background-color: #DA521E;"
+    class="d-none d-md-block text-white p-3"
+    style="width: 250px; min-width: 250px; height: 100vh; position: sticky; top: 0; background-color: #DA521E"
   >
+    <h5 class="text-center mb-4" style="color: #DAB01E;">Filter</h5>
     <form method="GET" action="/products/catalogue">
       <!-- Kategori -->
       <div class="mb-4">
@@ -16,7 +17,6 @@
           </div>
         {{/each}}
       </div>
-
       <!-- Harga -->
       <div class="mb-4">
         <label class="form-label fw-semibold" style="color: #DAB01E;">Harga (Rp)</label>
@@ -26,7 +26,6 @@
           <input type="number" class="form-control form-control-sm" placeholder="Max" name="maxPrice" min="0" value="{{filters.maxPrice}}" />
         </div>
       </div>
-
       <!-- Ketersediaan -->
       <div class="mb-4">
         <label class="form-label fw-semibold" style="color: #DAB01E;">Ketersediaan</label>
@@ -41,14 +40,13 @@
           <label class="form-check-label text-white" for="allStock">Semua</label>
         </div>
       </div>
-
       <div class="d-grid">
         <button class="btn fw-bold" style="background-color: #DAB01E;">Terapkan Filter</button>
       </div>
     </form>
-      <div class="d-grid mt-3">
-        <button id="resetFilterBtn" class="btn fw-bold " style="background-color: #DAB01E;">Reset Filter</button>
-      </div>
+    <div class="d-grid mt-3">
+      <button id="resetFilterBtn" class="btn fw-bold" style="background-color: #DAB01E;">Reset Filter</button>
+    </div>
   </aside>
 
   <!-- Offcanvas Sidebar for Mobile -->
@@ -56,14 +54,12 @@
     <button class="btn text-white m-3" style="background-color: #DA521E;" data-bs-toggle="offcanvas" data-bs-target="#mobileFilterSidebar">
       ☰ Filter
     </button>
-
-    <div class="offcanvas offcanvas-start text-bg-danger" tabindex="-1" id="mobileFilterSidebar">
+    <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="mobileFilterSidebar">
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Filter Produk</h5>
+        <h5 class="offcanvas-title" style="color: #DAB01E;">Filter Produk</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
       </div>
       <div class="offcanvas-body">
-        <!-- Konten sidebar sama seperti di atas -->
         <form method="GET" action="/products/catalogue">
           <!-- Kategori -->
           <div class="mb-4">
@@ -76,7 +72,6 @@
               </div>
             {{/each}}
           </div>
-
           <!-- Harga -->
           <div class="mb-4">
             <label class="form-label fw-semibold" style="color: #DAB01E;">Harga (Rp)</label>
@@ -86,14 +81,13 @@
               <input type="number" class="form-control form-control-sm" placeholder="Max" name="maxPrice" min="0" value="{{filters.maxPrice}}" />
             </div>
           </div>
-
           <!-- Ketersediaan -->
           <div class="mb-4">
             <label class="form-label fw-semibold" style="color: #DAB01E;">Ketersediaan</label>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="availability" id="minStock" value="inStock"
                 {{#if (eq filters.availability "inStock")}}checked{{/if}}>
-              <label class="form-check-label text-white" for="minStock">Stok tersedia</label>
+              <label class="form-check-label text-white" for="minStock">Tersedia</label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="availability" id="mallStock" value="all"
@@ -101,14 +95,13 @@
               <label class="form-check-label text-white" for="mallStock">Semua</label>
             </div>
           </div>
-
           <div class="d-grid">
             <button class="btn fw-bold text-white" style="background-color: #DAB01E;">Terapkan Filter</button>
           </div>
         </form>
-      <div class="d-grid mt-3">
-        <button id="resetFilterBtn" class="btn fw-bold " style="background-color: #DAB01E;">Reset Filter</button>
-      </div>
+        <div class="d-grid mt-3">
+          <button id="resetFilterBtnMobile" class="btn fw-bold" style="background-color: #DAB01E;">Reset Filter</button>
+        </div>
       </div>
     </div>
   </div>
@@ -200,6 +193,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    console.log({{{json filters}}})
     console.log('DOM loaded')
     const resetFilterBtn = document.getElementById('resetFilterBtn');
     resetFilterBtn.addEventListener('click', () => {
@@ -210,7 +204,6 @@
       url.searchParams.delete('availability');
       window.location.href = url.toString();
     });
-    console.log({{{products.length}}})
     let filters = {{{json filters}}};
     if(filters) {
       console.log('Categories', filters.categories);
