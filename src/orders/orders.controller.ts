@@ -69,7 +69,7 @@ export class OrdersController {
     if (!user) {
       return res.redirect('/login');
     }
-    const orders = await this.ordersService.findOrdersByUser(user.id);
+    const orders = await this.ordersService.findOrdersByUser(user.sub);
     return {
       layout: 'layouts/shop',
       title: 'Pesanan Saya',
@@ -178,7 +178,7 @@ export class CheckoutController {
       orderId,
       ...createTransactionDto,
     });
-
+    console.log('Transaction: :', transaction);
     await this.ordersService.createPendingOrder({
       id: orderId,
       user,
