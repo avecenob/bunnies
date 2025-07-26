@@ -63,6 +63,10 @@
           alert(data.message || 'Produk berhasil ditambahkan ke keranjang!');
           window.location.reload();
         } else {
+          if (data.message === 'Unauthorized') {
+            alert('Silakan login terlebih dahulu')
+            return window.location.href = '/auth/login'
+          }
           alert(data.message || 'Gagal menambahkan produk.');
         }
       } catch (err) {
