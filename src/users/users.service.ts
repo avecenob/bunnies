@@ -65,7 +65,7 @@ export class UsersService {
 
   async findOne(key: string) {
     const user = await this.userRepository.findOne({
-      where: [{ id: key }, { email: key }],
+      where: [{ id: key }, { email: key }, { resetToken: key }],
     });
 
     return user;
@@ -78,18 +78,8 @@ export class UsersService {
       throw new NotFoundException(`User with id: ${id} not found`);
     }
 
-    const { email, password, address, phone } = updateUserDto;
-    const hashedPassword = password
-      ? await bcrypt.hash(password, 10)
-      : undefined;
-
     try {
-      await this.userRepository.update(userToUpdate.id, {
-        ...(email && { email }),
-        ...(password && { password: hashedPassword }),
-        ...(address && { address }),
-        ...(phone && { phone }),
-      });
+      await this.userRepository.update(userToUpdate.id, updateUserDto);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
@@ -100,6 +90,8 @@ export class UsersService {
       message: `user with id: ${userToUpdate.id} updated`,
     };
   }
+
+  async updatePassword() {}
 
   async deleteById(id: string) {
     const userToDelete = await this.findOne(id);

@@ -25,4 +25,10 @@ export class UpdateUserDto {
   @IsString()
   @Matches(/^$|^(\+62|0)\d{9,12}$/, { message: 'Nomor telepon tidak valid' })
   phone?: string;
+
+  @IsOptional()
+  resetToken?: string | null;
+
+  @IsOptional()
+  resetTokenExpires?: Date | null;
 }

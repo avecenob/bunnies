@@ -12,6 +12,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { MidtransModule } from './midtrans/midtrans.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
     MidtransModule,
     PaymentsModule,
     DeliveriesModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

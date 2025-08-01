@@ -5,10 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
+  Render,
   Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserLoginDto } from '../common/dto/auth/user-login';
+import { UserLoginDto } from '../common/dto/auth/user-login.dto';
 import { Response } from 'express';
 
 @Controller('auth')
@@ -60,5 +62,37 @@ export class AuthController {
       message: 'Logout berhasil',
       redirect: '/',
     };
+  }
+
+  @Get('forgot-password')
+  @Render('auth/forgotPassword')
+  async renderForgotPassword() {
+    return {
+      layout: 'layouts/shop',
+      statusCode: HttpStatus.OK,
+      message: 'Gimana sih masa lupa',
+    };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: any) {
+    console.log(body);
+    return await this.authService.forgotPassword(body.email);
+  }
+
+  @Get('reset-password')
+  @Render('auth/resetPassword')
+  async renderResetPassword(@Query('token') token: string) {
+    return {
+      layout: 'layouts/shop',
+      statusCode: HttpStatus.OK,
+      message: 'ntaps',
+      token: token,
+    };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    return await this.authService.resetPassword(body.token, body.newPassword);
   }
 }

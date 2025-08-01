@@ -7,10 +7,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt/jwt.guard';
 import { RolesGuard } from './guards/roles/roles.guard';
 import * as dotenv from 'dotenv';
+import { EmailModule } from 'src/email/email.module';
 dotenv.config();
 
 @Module({
   imports: [
+    EmailModule,
     forwardRef(() => UsersModule),
     JwtModule.register({
       global: true,

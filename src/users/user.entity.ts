@@ -40,6 +40,12 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ type: 'varchar', nullable: true })
+  resetToken: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetTokenExpires: Date | null;
+
   @OneToMany(() => Order, (order) => order.user)
   orders: Relation<Order[]>;
 
